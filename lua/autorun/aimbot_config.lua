@@ -67,7 +67,6 @@ if CLIENT then
 		CreateClientConVar("aimbotgun_target_barnacle", 1, true, false, "Attack barnacle NPCs")
 	end
 
-
 	-- Crosshair spin speed
 	if not ConVarExists("aimbotgun_visual_crosshair_spin_speed") then
 		CreateClientConVar("aimbotgun_visual_crosshair_spin_speed", 1, true, false, "Crosshair spin speed")
