@@ -7,12 +7,15 @@ SWEP.DrawAmmo = false;
 SWEP.DrawCrosshair = false;
 
 function SWEP:Initialize()
+
+end
+
+function SWEP:InitAimbotGun(swepName)
 	surface.CreateFont("Arial",
 					   {
 						   font = "Arial",
 						   size = ScreenScale(10),
 						   weight = 400
 					   })
-
-	killicon.Add("weapon_aimbot_ar2", "aimbot/killico", color_white)
+	killicon.Add(swepName, "aimbot/killico", color_white)
 end

@@ -5,8 +5,8 @@ SWEP.Category = ""
 SWEP.IconLetter = ""
 SWEP.Author = "Ai2, Orig: LuaStoned, Ported by uacnix, improved by eric0210"
 SWEP.Contact = ""
-SWEP.Purpose = ""
-SWEP.Instructions = ""
+SWEP.Purpose = "Helps shooting at enemies"
+SWEP.Instructions = "Left Click to shoot.\n\nDoes not req. CS:S. :D"
 
 SWEP.ViewModelFlip = false -- I don't like left-side SWEPs either.
 
@@ -316,7 +316,7 @@ function SWEP:UpdateTarget()
 	local available = target.Entity ~= 0
 	self.Aimbot.Target = available and target or nil
 
-	if available and GetConVar("aimbotgun_triggerbot"):GetInt() ~= 0 and CurTime() - self:GetNWInt("LastShoot", 0) >= self.Primary.Delay then
+	if available and GetConVar("aimbotgun_triggerbot"):GetInt() ~= 0 and CurTime() - self:GetNWInt("LastShoot", 0) >= math.max(self.Primary.Delay, 0.15) then
 		self:ShootAt(target, true)
 	end
 end
@@ -390,7 +390,7 @@ function SWEP:FirePrimary(dir)
 	self:SetNextPrimaryFire(CurTime() + self.Primary.Delay)
 
 	if self.Primary.Recoil > 0 and SERVER and not self:GetOwner():IsNPC() then
-		self:GetOwner():ViewPunch(Angle(-self.Primary.Recoil + math.Rand(-2, 2), 0, 0))
+		self:GetOwner():ViewPunch(Angle(-self.Primary.Recoil + self.Primary.Recoil * math.Rand(-0.5, 0.5), 0, 0))
 	end
 end
 
