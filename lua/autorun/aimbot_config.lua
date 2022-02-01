@@ -16,7 +16,7 @@ if CLIENT then
 
 	-- Triggerbot
 	if not ConVarExists("aimbotgun_triggerbot") then
-		CreateClientConVar("aimbotgun_triggerbot", 0, true, false, "Automatically shot the target in sight with Aimbot Gun")
+		CreateClientConVar("aimbotgun_triggerbot", 0, true, false, "Automatically shot the target immediately (if exists)")
 	end
 
 	-- FoV
@@ -117,7 +117,7 @@ if CLIENT then
 	hook.Add("PopulateToolMenu", "AimbotGunSettings", function()
 		spawnmenu.AddToolMenuOption("Options", "Aimbot Gun Settings", "AimbotGunSettings", "Client", "", "", function(panel)
 			-- Setup the menu
-			local RagdollBloodSettings = {
+			local AimbotGunSettings = {
 				Options = {},
 				CVars = {},
 				Label = "#Presets",
@@ -126,7 +126,7 @@ if CLIENT then
 			}
 
 			-- Set the default values
-			RagdollBloodSettings.Options["#Default"] = {
+			AimbotGunSettings.Options["#Default"] = {
 				aimbotgun_aimbot_silent = "0",
 				aimbotgun_aimbot_reflick = "0",
 				aimbotgun_aimbot_reflick_delay = "0.025",
@@ -134,13 +134,13 @@ if CLIENT then
 				aimbotgun_aimbot_fov = "20",
 				aimbotgun_only_hostile_npcs = "0"
 			}
-			panel:AddControl("ComboBox", RagdollBloodSettings)
+			panel:AddControl("ComboBox", AimbotGunSettings)
 
 			-- Show the author
 			panel:AddControl("Label", { Text = "By buu342(RagdollBlood GUI), eric0210(Transcoder to support Aimbot Gun)" })
 			panel:AddControl("Label", { Text = "" })
 
-			panel:AddControl("Header", { Description = "Aimbot" })
+			panel:AddControl("Header", { Description = "Aimbot Preferences" })
 
 			-- Silent aim
 			panel:AddControl("CheckBox", {
@@ -177,7 +177,7 @@ if CLIENT then
 				Label = "FoV",
 				Command = "aimbotgun_aimbot_fov",
 				Type = "Float",
-				Min = "0.3",
+				Min = "0.1",
 				Max = "2",
 			})
 			panel:AddControl("Label", { Text = "" })
