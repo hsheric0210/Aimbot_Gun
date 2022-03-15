@@ -316,7 +316,7 @@ function SWEP:UpdateTarget()
 	local available = target.Entity ~= 0
 	self.Aimbot.Target = available and target or nil
 
-	if available and GetConVar("aimbotgun_triggerbot"):GetInt() ~= 0 and CurTime() - self:GetNWInt("LastShoot", 0) >= math.max(self.Primary.Delay, 0.15) then
+	if available and self:CanPrimaryAttack() and GetConVar("aimbotgun_triggerbot"):GetInt() ~= 0 and CurTime() - self:GetNWInt("LastShoot", 0) >= math.max(self.Primary.Delay, 0.15) then
 		self:ShootAt(target, true)
 	end
 end
@@ -399,6 +399,9 @@ function SWEP:Reload()
 end
 
 function SWEP:PrimaryAttack()
+	if self.Primary.AmmoTook > 0 and not self:CanPrimaryAttack() then
+		return
+	end
 	self:ShootAt(self.Aimbot.Target, false)
 end
 
@@ -456,7 +459,7 @@ function SWEP:GetTargetName(target)
 	if targetEnt:IsNPC() then
 		local seqID = targetEnt:GetSequence()
 		local seqName = targetEnt:GetSequenceName(seqID)
-		return targetEnt:GetClass() .. ", sequence: #" .. seqID .. " - " .. seqName
+		return targetEnt:GetClass() .. " (" .. targetEnt:GetModel() .. ")" .. ", sequence: #" .. seqID .. " - " .. seqName
 	end
 
 	return ""

@@ -5,24 +5,24 @@ SWEP.AdminOnly = true
 SWEP.Category = "uacport Sweps"
 SWEP.IconLetter = "D"
 
-SWEP.ViewModel = "models/weapons/c_IRifle.mdl"
-SWEP.WorldModel = "models/weapons/w_IRifle.mdl"
+SWEP.ViewModel = "models/weapons/c_357.mdl"
+SWEP.WorldModel = "models/weapons/w_357.mdl"
 
-SWEP.HoldType = "ar2"
+SWEP.HoldType = "revolver"
 SWEP.UseHands = true
 
 SWEP.Primary.ClipSize = 100
 SWEP.Primary.DefaultClip = 9999999
-SWEP.Primary.Delay = 0.1
-SWEP.Primary.Automatic = true
-SWEP.Primary.Ammo = "AR2"
-SWEP.Primary.Sound = Sound("Weapon_AR2.Single")
-SWEP.Primary.Recoil = 0.8
-SWEP.Primary.Force = 1
-SWEP.Primary.Damage = 999
+SWEP.Primary.Delay = 0.8
+SWEP.Primary.Automatic = false
+SWEP.Primary.Ammo = "357"
+SWEP.Primary.Sound = Sound("Weapon_357.Single")
+SWEP.Primary.Recoil = 10
+SWEP.Primary.Force = 150
+SWEP.Primary.Damage = 125
 SWEP.Primary.NumShots = 1
-SWEP.Primary.Cone = 0.2
-SWEP.Primary.AmmoTook = 0
+SWEP.Primary.Cone = 0.0
+SWEP.Primary.AmmoTook = 1
 
 SWEP.Secondary.ClipSize = -1
 SWEP.Secondary.DefaultClip = -1
