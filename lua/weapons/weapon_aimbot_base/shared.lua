@@ -316,7 +316,7 @@ function SWEP:UpdateTarget()
 	local available = target.Entity ~= 0
 	self.Aimbot.Target = available and target or nil
 
-	if available and self:CanPrimaryAttack() and GetConVar("aimbotgun_triggerbot"):GetInt() ~= 0 and CurTime() - self:GetNWInt("LastShoot", 0) >= math.max(self.Primary.Delay, 0.15) then
+	if available and self:Clip1() > 0 and GetConVar("aimbotgun_triggerbot"):GetInt() ~= 0 and CurTime() - self:GetNWInt("LastAimbotActive", 0) >= math.max(self.Primary.Delay, GetConVar("aimbotgun_aimbot_reflick_delay"):GetFloat() * 1.2) then
 		self:ShootAt(target, true)
 	end
 end
@@ -335,6 +335,8 @@ function SWEP:ShootAt(target, disallowNoTargetShot)
 	if not targetAvailable and disallowNoTargetShot then
 		return
 	end
+
+	self:SetNWInt("LastAimbotActive", CurTime())
 
 	-- Debug codes
 	--if targetAvailable then
@@ -360,13 +362,14 @@ function SWEP:ShootAt(target, disallowNoTargetShot)
 
 	self:FirePrimary(dir)
 
-	self:SetNWInt("LastShoot", CurTime())
-
 	if targetAvailable and not silent and GetConVar("aimbotgun_aimbot_reflick"):GetInt() ~= 0 then
 		timer.Simple(GetConVar("aimbotgun_aimbot_reflick_delay"):GetFloat(), function()
 			owner:SetEyeAngles(prevAngle)
 		end)
 	end
+
+	-- Check if all ammo is spent
+	self:CanPrimaryAttack()
 end
 
 function SWEP:FirePrimary(dir)

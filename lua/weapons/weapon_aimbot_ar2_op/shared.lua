@@ -21,7 +21,7 @@ SWEP.Primary.Recoil = 0.8
 SWEP.Primary.Force = 1
 SWEP.Primary.Damage = 999
 SWEP.Primary.NumShots = 1
-SWEP.Primary.Cone = 0.2
+SWEP.Primary.Cone = 0.0
 SWEP.Primary.AmmoTook = 0
 
 SWEP.Secondary.ClipSize = -1
