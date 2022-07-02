@@ -11,8 +11,8 @@ SWEP.WorldModel = "models/weapons/w_357.mdl"
 SWEP.HoldType = "revolver"
 SWEP.UseHands = true
 
-SWEP.Primary.ClipSize = 100
-SWEP.Primary.DefaultClip = 9999999
+SWEP.Primary.ClipSize = 6
+SWEP.Primary.DefaultClip = 32
 SWEP.Primary.Delay = 0.8
 SWEP.Primary.Automatic = false
 SWEP.Primary.Ammo = "357"

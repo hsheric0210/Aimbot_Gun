@@ -24,6 +24,11 @@ if CLIENT then
 		CreateClientConVar("aimbotgun_aimbot_fov", 2, true, false, "FoV(Field-of-View) of aimbot in Aimbot Gun")
 	end
 
+	-- Wall check
+	if not ConVarExists("aimbotgun_wallcheck") then
+		CreateClientConVar("aimbotgun_wallcheck", 1, true, false, "Check if there's any wall between target and player")
+	end
+
 	-- Bone
 	if not ConVarExists("aimbotgun_bone") then
 		CreateClientConVar("aimbotgun_bone", 2, true, false, "Aimbot bone preference; 0 = Closest, 1 = Prefer Head, 2 = Only Head")
@@ -179,6 +184,11 @@ if CLIENT then
 				Type = "Float",
 				Min = "0.1",
 				Max = "2",
+			})
+			-- Wall check
+			panel:AddControl("CheckBox", {
+				Label = "Enable wall check",
+				Command = "aimbotgun_wallcheck",
 			})
 			panel:AddControl("Label", { Text = "" })
 

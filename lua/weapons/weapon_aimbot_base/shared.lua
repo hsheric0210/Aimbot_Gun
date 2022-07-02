@@ -110,6 +110,7 @@ function SWEP:FindAvailableBones(ent, boneName, isBoneAttachment, boneAngularOff
 	local alreadySeenBones = { 0 }
 
 	local headPriority = (GetConVar("aimbotgun_bone"):GetInt() > 0) and 2 or 1
+	local wallCheck = GetConVar("aimbotgun_wallcheck"):GetInt() > 0
 
 	if boneName ~= nil then
 		if isBoneAttachment then
@@ -117,7 +118,7 @@ function SWEP:FindAvailableBones(ent, boneName, isBoneAttachment, boneAngularOff
 			local attachment = ent:GetAttachment(ent:LookupAttachment(boneName))
 			if attachment ~= nil then
 				local pos = attachment.Pos
-				if self:IsVisible(ent, pos) then
+				if not wallCheck or self:IsVisible(ent, pos) then
 					table.insert(available, { Name = "Attachment." .. boneName, Priority = headPriority, Pos = pos })
 				end
 			end
@@ -128,7 +129,7 @@ function SWEP:FindAvailableBones(ent, boneName, isBoneAttachment, boneAngularOff
 				local boneMatrix = ent:GetBoneMatrix(boneIndex)
 				if boneMatrix ~= nil then
 					local pos = boneMatrix:GetTranslation() + boneMatrix:GetForward() * boneAngularOffset
-					if self:IsVisible(ent, pos) then
+					if not wallCheck or self:IsVisible(ent, pos) then
 						table.insert(available, { Name = boneName, Priority = headPriority, Pos = pos })
 						table.insert(alreadySeenBones, boneIndex)
 					end
@@ -138,7 +139,7 @@ function SWEP:FindAvailableBones(ent, boneName, isBoneAttachment, boneAngularOff
 	end
 
 	local pos = ent:GetBonePosition(0)
-	if pos and self:IsVisible(ent, pos) then
+	if pos and (not wallCheck or self:IsVisible(ent, pos)) then
 		table.insert(available, { Name = "Root_Bone", Priority = 1, Pos = pos })
 	end
 
@@ -149,7 +150,7 @@ function SWEP:FindAvailableBones(ent, boneName, isBoneAttachment, boneAngularOff
 				local boneMatrix = ent:GetBoneMatrix(boneIndex)
 				if boneMatrix then
 					pos = boneMatrix:GetTranslation()
-					if self:IsVisible(ent, pos) then
+					if not wallCheck or self:IsVisible(ent, pos) then
 						table.insert(available, { Name = ent:GetBoneName(boneIndex), Priority = 0, Pos = pos })
 					end
 				end
