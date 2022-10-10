@@ -74,15 +74,17 @@ local ApplyAimGod = function(self, bulletdata)
 		local prevAngle = owner:LocalEyeAngles()
 
 		local target = owner.AimbotTarget
-		if target == nil then
+		if target == nil or target.Entity == 0 then
 			target = AimbotGun.GetClosestBone(owner)
+			target.byTick = false
 		end
 		if target.Entity ~= 0 then
+			PrintTable(target)
+			print("distance: " .. target.Bone.Pos:Distance(owner:EyePos()))
+			MsgN("target by tick: ", target.byTick, " target ent: ", target.Entity, IsValid(target.Entity))
 			-- let's aim!
 			local dir = target.Bone.Pos - owner:EyePos()
-			if not silent then
-				owner:SetEyeAngles(dir:Angle())
-			end
+			owner.AimbotAngle = dir:Angle()
 
 			local spreadMul = GetConVar("aimbotgun_global_spreadmultiplier"):GetFloat()
 			if bulletdata.Spread then
@@ -97,9 +99,9 @@ local ApplyAimGod = function(self, bulletdata)
 			bulletdata.Dir = dir
 			bulletdata.Aimbotted = true
 
-			if not owner.ReflickWait and not silent and GetConVar("aimbotgun_aimbot_reflick"):GetInt() ~= 0 then
+			if not silent and GetConVar("aimbotgun_aimbot_reflick"):GetInt() ~= 0 then
 				timer.Simple(GetConVar("aimbotgun_aimbot_reflick_delay"):GetFloat(), function()
-					owner:SetEyeAngles(prevAngle)
+					owner.AimbotAngle = prevAngle
 					owner.ReflickWait = false
 				end)
 			end
@@ -122,8 +124,9 @@ end
 EntityTriggerbotUpdate = function(self)
 	if GetConVar("aimbotgun_triggerbot"):GetInt() ~= 0 then
 		for _, ent in pairs(ents.GetAll()) do
-			if ent and ent:IsValid() and ent:IsPlayer() and ent:GetActiveWeapon() and ent:GetActiveWeapon():IsScripted() and ent:GetActiveWeapon():Clip1() > 0 and ent:GetActiveWeapon():GetNextPrimaryFire() < CurTime() then
+			if ent and ent:IsValid() and ent:IsPlayer() and IsValid(ent:GetActiveWeapon()) and ent:GetActiveWeapon():Clip1() > 0 and ent:GetActiveWeapon():GetNextPrimaryFire() < CurTime() then
 				ent.AimbotTarget = AimbotGun.GetClosestBone(ent)
+				ent.AimbotTarget.byTick = true
 				if ent.AimbotTarget and ent.AimbotTarget.Entity ~= 0 then
 					ent.Trigger = true
 				end
@@ -134,11 +137,14 @@ end
 
 EntityTriggerbotApply = function(self, move)
 	if self.Trigger then
-		if CLIENT then
-			chat.AddText("Attack!")
-		end
 		move:AddKey(IN_ATTACK)
 		self.Trigger = false
+	end
+
+	if IsValid(self.AimbotAngle) then
+		move:SetViewAngles(self.AimbotAngle)
+		self:SetEyeAngles(self.AimbotAngle)
+		self.AimbotAngle = nil
 	end
 end
 

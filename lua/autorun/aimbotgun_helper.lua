@@ -238,7 +238,7 @@ function AimbotGun.IsHostile(ent)
 end
 
 function AimbotGun.IsTargetValid(ply, entity)
-	if not IsValid(entity) then
+	if not entity:IsValid() then
 		return false
 	end
 
@@ -259,7 +259,7 @@ function AimbotGun.IsTargetValid(ply, entity)
 	end
 
 	if entity:IsNPC() then
-		if entity:GetMoveType() == 0 then
+		if entity:GetMoveType() == MOVETYPE_NONE then
 			return false
 		end
 
@@ -289,3 +289,22 @@ function AimbotGun.GetValidTargets(ply)
 	return targets
 end
 
+function AimbotGun.GetTargetName(target)
+	local targetEnt = target.Entity
+
+	if not targetEnt:IsValid() then
+		return "Invalid"
+	end
+
+	if targetEnt:IsPlayer() then
+		return targetEnt:Name()
+	end
+
+	if targetEnt:IsNPC() then
+		local seqID = targetEnt:GetSequence()
+		local seqName = targetEnt:GetSequenceName(seqID)
+		return targetEnt:GetClass() .. " (" .. targetEnt:GetModel() .. ")" .. ", sequence: #" .. seqID .. " - " .. seqName
+	end
+
+	return ""
+end
