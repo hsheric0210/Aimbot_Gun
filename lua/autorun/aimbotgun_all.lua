@@ -73,7 +73,10 @@ local ApplyAimGod = function(self, bulletdata)
 		local silent = GetConVar("aimbotgun_aimbot_silent"):GetInt() ~= 0
 		local prevAngle = owner:LocalEyeAngles()
 
-		local target = AimbotGun.GetClosestBone(owner)
+		local target = owner.AimbotTarget
+		if target == nil then
+			target = AimbotGun.GetClosestBone(owner)
+		end
 		if target.Entity ~= 0 then
 			-- let's aim!
 			local dir = target.Bone.Pos - owner:EyePos()
@@ -109,27 +112,38 @@ local ApplyAimGod = function(self, bulletdata)
 	return false
 end
 
-if ENT_META then
-	local FireBullets_Old = ENT_META.FireBullets
-	local FireBullets_New = FireBullets_Old
-	
-	print("AimbotGun global: Injecting to Entity:FireBullets()")
-	ENT_META.FireBullets = function(self, bulletdata, ...)
-		if ApplyAimGod(self, bulletdata) then
-			print("Aim By Direct Injection!")
-		end
-		return FireBullets_New(self, bulletdata, ...)
-	end
-end
-
-
 EntityFireAimbotBullets = function(self, data, ...)
-	if self:IsPlayer() and not self:GetActiveWeapon():IsScripted() and ApplyAimGod(self, data) then
+	if ApplyAimGod(self, data) then
 		print("Aim by Hook!")
 		return true
 	end
 end
 
+EntityTriggerbotUpdate = function(self)
+	if GetConVar("aimbotgun_triggerbot"):GetInt() ~= 0 then
+		for _, ent in pairs(ents.GetAll()) do
+			if ent and ent:IsValid() and ent:IsPlayer() and ent:GetActiveWeapon() and ent:GetActiveWeapon():IsScripted() and ent:GetActiveWeapon():Clip1() > 0 and ent:GetActiveWeapon():GetNextPrimaryFire() < CurTime() then
+				ent.AimbotTarget = AimbotGun.GetClosestBone(ent)
+				if ent.AimbotTarget and ent.AimbotTarget.Entity ~= 0 then
+					ent.Trigger = true
+				end
+			end
+		end
+	end
+end
+
+EntityTriggerbotApply = function(self, move)
+	if self.Trigger then
+		if CLIENT then
+			chat.AddText("Attack!")
+		end
+		move:AddKey(IN_ATTACK)
+		self.Trigger = false
+	end
+end
+
 hook.Add("EntityFireBullets", "AimbotGun_EntityFireBullets", EntityFireAimbotBullets)
+hook.Add("Think", "AimbotGun_Think", EntityTriggerbotUpdate)
+hook.Add("StartCommand", "AimbotGun_FinishMove", EntityTriggerbotApply)
 
 print("AimbotGun global autorun initialized")
