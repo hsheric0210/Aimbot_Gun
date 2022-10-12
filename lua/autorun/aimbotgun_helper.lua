@@ -49,13 +49,14 @@ function AimbotGun.SetupAimbotDataForEntity(ent)
 	local boneAngularOffset = 3.5
 
 	local model = ent:GetModel() or ""
-	if model:find("manhack") then
-		attachmentName = "light"
-	elseif model:find("stalker") then
+	if model:find("stalker") then
 		boneName = "ValveBiped.Bip01_Head1"
+	elseif model:find("combine") and model:find("soldier") then
+		boneName = "ValveBiped.Bip01_Head1"
+		boneAngularOffset = 4.5
 	elseif model:find("poison") then
 		boneName = "ValveBiped.Bip01_Spine4"
-	elseif not model:find("scanner") then
+	elseif not model:find("scanner") and not model:find("manhack") then
 		for _, name in pairs(AimbotGun.DefaultAttachmentNames) do
 			if ent:LookupAttachment(name) > 0 then
 				attachmentName = name
@@ -292,7 +293,7 @@ end
 function AimbotGun.GetTargetName(target)
 	local targetEnt = target.Entity
 
-	if not targetEnt:IsValid() then
+	if not IsValid(targetEnt) then
 		return "Invalid"
 	end
 

@@ -177,22 +177,6 @@ function SWEP:GetBoneCoordiantes(pos)
 	return minx, miny, maxx, maxy
 end
 
-function SWEP:GetTargetName(target)
-	local targetEnt = target.Entity
-
-	if targetEnt:IsPlayer() then
-		return targetEnt:Name()
-	end
-
-	if targetEnt:IsNPC() then
-		local seqID = targetEnt:GetSequence()
-		local seqName = targetEnt:GetSequenceName(seqID)
-		return targetEnt:GetClass() .. " (" .. targetEnt:GetModel() .. ")" .. ", sequence: #" .. seqID .. " - " .. seqName
-	end
-
-	return ""
-end
-
 function SWEP:GetVerboseText(target)
 	return "targetBone: " .. target.Bone.Name .. " boneAngularOffset: " .. target.Entity.AimbotData.BoneAngularOffset .. " fov: " .. target.FOV
 end
@@ -231,7 +215,7 @@ function SWEP:DrawHUD()
 	if target ~= nil then
 		surface.SetFont("Default")
 
-		local text = "Target locked... (" .. self:GetTargetName(target) .. ")"
+		local text = "Target locked... (" .. AimbotGun.GetTargetName(target) .. ")"
 		local size = surface.GetTextSize(text)
 		draw.RoundedBox(4, 36, y - 135, size + 10, 20, Color(0, 0, 0, 100))
 		draw.DrawText(text, "Default", 40, y - 132, Color(255, 255, 255, 200), TEXT_ALIGN_LEFT)

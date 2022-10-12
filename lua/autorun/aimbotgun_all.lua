@@ -84,7 +84,9 @@ local ApplyAimGod = function(self, bulletdata)
 			MsgN("target by tick: ", target.byTick, " target ent: ", target.Entity, IsValid(target.Entity))
 			-- let's aim!
 			local dir = target.Bone.Pos - owner:EyePos()
-			owner.AimbotAngle = dir:Angle()
+			if not silent then
+				owner.AimbotAngle = dir:Angle()
+			end
 
 			local spreadMul = GetConVar("aimbotgun_global_spreadmultiplier"):GetFloat()
 			if bulletdata.Spread then
@@ -101,7 +103,7 @@ local ApplyAimGod = function(self, bulletdata)
 
 			if not silent and GetConVar("aimbotgun_aimbot_reflick"):GetInt() ~= 0 then
 				timer.Simple(GetConVar("aimbotgun_aimbot_reflick_delay"):GetFloat(), function()
-					owner.AimbotAngle = prevAngle
+					owner.ReflickAngle = prevAngle
 					owner.ReflickWait = false
 				end)
 			end
@@ -124,11 +126,15 @@ end
 EntityTriggerbotUpdate = function(self)
 	if GetConVar("aimbotgun_triggerbot"):GetInt() ~= 0 then
 		for _, ent in pairs(ents.GetAll()) do
-			if ent and ent:IsValid() and ent:IsPlayer() and IsValid(ent:GetActiveWeapon()) and ent:GetActiveWeapon():Clip1() > 0 and ent:GetActiveWeapon():GetNextPrimaryFire() < CurTime() then
-				ent.AimbotTarget = AimbotGun.GetClosestBone(ent)
-				ent.AimbotTarget.byTick = true
-				if ent.AimbotTarget and ent.AimbotTarget.Entity ~= 0 then
-					ent.Trigger = true
+			if ent and ent:IsValid() and ent:IsPlayer() and IsValid(ent:GetActiveWeapon()) then
+				if ent:GetActiveWeapon():Clip1() > 0 and ent:GetActiveWeapon():GetNextPrimaryFire() < CurTime() then
+					ent.AimbotTarget = AimbotGun.GetClosestBone(ent)
+					ent.AimbotTarget.byTick = true
+					if ent.AimbotTarget and ent.AimbotTarget.Entity ~= 0 then
+						ent.Trigger = true
+					end
+				elseif ent:GetActiveWeapon():Clip1() <= 0 then
+					ent:GetActiveWeapon():CanPrimaryAttack() -- Reload
 				end
 			end
 		end
@@ -141,10 +147,14 @@ EntityTriggerbotApply = function(self, move)
 		self.Trigger = false
 	end
 
-	if IsValid(self.AimbotAngle) then
+	if self.AimbotAngle ~= nil then
 		move:SetViewAngles(self.AimbotAngle)
 		self:SetEyeAngles(self.AimbotAngle)
 		self.AimbotAngle = nil
+	elseif self.ReflickAngle ~= nil then
+		move:SetViewAngles(self.ReflickAngle)
+		self:SetEyeAngles(self.ReflickAngle)
+		self.ReflickAngle = nil
 	end
 end
 
