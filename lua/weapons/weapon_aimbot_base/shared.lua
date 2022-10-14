@@ -153,30 +153,6 @@ function SWEP:DrawRotatingCrosshair(x, y, time, length, gap)
 	)
 end
 
-function SWEP:GetBoneCoordiantes(pos)
-	local expand = Vector(1, 1, 1)
-	local min = pos - expand
-	local max = pos + expand
-	local corners = {
-		Vector(min.x, min.y, min.z),
-		Vector(min.x, min.y, max.z),
-		Vector(min.x, max.y, min.z),
-		Vector(min.x, max.y, max.z),
-		Vector(max.x, min.y, min.z),
-		Vector(max.x, min.y, max.z),
-		Vector(max.x, max.y, min.z),
-		Vector(max.x, max.y, max.z)
-	}
-
-	local minx, miny, maxx, maxy = ScrW() * 2, ScrH() * 2, 0, 0
-	for _, corner in pairs(corners) do
-		local screen = corner:ToScreen()
-		minx, miny = math.min(minx, screen.x), math.min(miny, screen.y)
-		maxx, maxy = math.max(maxx, screen.x), math.max(maxy, screen.y)
-	end
-	return minx, miny, maxx, maxy
-end
-
 function SWEP:GetVerboseText(target)
 	return "targetBone: " .. target.Bone.Name .. " boneAngularOffset: " .. target.Entity.AimbotData.BoneAngularOffset .. " fov: " .. target.FOV
 end
@@ -225,7 +201,7 @@ function SWEP:DrawHUD()
 		draw.RoundedBox(4, 36, y - 155, verboseSize + 10, 20, Color(0, 0, 0, 100))
 		draw.DrawText(verboseText, "Default", 40, y - 152, Color(255, 255, 255, 200), TEXT_ALIGN_LEFT)
 
-		local x1, y1, x2, y2 = self:GetBoneCoordiantes(target.Bone.Pos)
+		local x1, y1, x2, y2 = AimbotGun.ProjectPosition2D(target.Bone.Pos)
 		local edgesize = 8
 
 		local targetMarkAlpha = GetConVar("aimbotgun_visual_target_mark_color_alpha"):GetInt()

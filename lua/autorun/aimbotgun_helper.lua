@@ -181,11 +181,15 @@ end
 function AimbotGun.IsHostile(ent)
 	local class = ent:GetClass()
 
-	local classPatternAvoid = { "ship", "maker", "item", "rollermine" }
+	local classPatternAvoid = { "ship", "maker", "item", "rollermine", "turret", "monster" }
 	for _, avoid in pairs(classPatternAvoid) do
 		if class:find(avoid) then
 			return false
 		end
+	end
+
+	if GetConVar("aimbotgun_target_all"):GetInt() ~= 0 then
+		return true
 	end
 
 	local classPattern = {}
@@ -226,20 +230,17 @@ function AimbotGun.IsHostile(ent)
 		table.insert(classPattern, "barnacle")
 	end
 
-	if class:find("turret") then
-		return false -- Don't target turrets - they're buggy
-	end
-
 	for _, pattern in pairs(classPattern) do
 		if class:find(pattern) then
 			return true
 		end
 	end
-	return GetConVar("aimbotgun_friendly_fire"):GetInt() ~= 0
+
+	return false
 end
 
 function AimbotGun.IsTargetValid(ply, entity)
-	if not entity:IsValid() then
+	if not IsValid(entity) then
 		return false
 	end
 
@@ -292,20 +293,43 @@ end
 
 function AimbotGun.GetTargetName(target)
 	local targetEnt = target.Entity
+	local boneName = target.Bone.Name
 
 	if not IsValid(targetEnt) then
-		return "Invalid"
+		return "Invalid part=" .. boneName
 	end
+
+	local name = targetEnt:GetClass()
 
 	if targetEnt:IsPlayer() then
-		return targetEnt:Name()
+		name = targetEnt:Name()
 	end
 
-	if targetEnt:IsNPC() then
-		local seqID = targetEnt:GetSequence()
-		local seqName = targetEnt:GetSequenceName(seqID)
-		return targetEnt:GetClass() .. " (" .. targetEnt:GetModel() .. ")" .. ", sequence: #" .. seqID .. " - " .. seqName
-	end
+	local seqID = targetEnt:GetSequence()
+	local seqName = targetEnt:GetSequenceName(seqID)
+	return name .. " model=" .. targetEnt:GetModel() .. ", part=" .. boneName .. ", sequence=[" .. seqID .. "]" .. seqName
+end
 
-	return ""
+function AimbotGun.ProjectPosition2D(pos)
+	local expand = Vector(1, 1, 1)
+	local min = pos - expand
+	local max = pos + expand
+	local corners = {
+		Vector(min.x, min.y, min.z),
+		Vector(min.x, min.y, max.z),
+		Vector(min.x, max.y, min.z),
+		Vector(min.x, max.y, max.z),
+		Vector(max.x, min.y, min.z),
+		Vector(max.x, min.y, max.z),
+		Vector(max.x, max.y, min.z),
+		Vector(max.x, max.y, max.z)
+	}
+
+	local minx, miny, maxx, maxy = ScrW() * 2, ScrH() * 2, 0, 0
+	for _, corner in pairs(corners) do
+		local screen = corner:ToScreen()
+		minx, miny = math.min(minx, screen.x), math.min(miny, screen.y)
+		maxx, maxy = math.max(maxx, screen.x), math.max(maxy, screen.y)
+	end
+	return minx, miny, maxx, maxy
 end

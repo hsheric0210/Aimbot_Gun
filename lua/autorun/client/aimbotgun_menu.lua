@@ -1,210 +1,79 @@
 if CLIENT then
 	hook.Add("PopulateToolMenu", "AimbotGunSettings", function()
-		spawnmenu.AddToolMenuOption("Options", "Aimbot Gun Settings", "AimbotGunSettings", "Client", "", "", function(panel)
-			-- Setup the menu
-			local AimbotGunSettings = {
-				Options = {},
-				CVars = {},
-				Label = "#Presets",
-				MenuButton = "1",
-				Folder = "Aimbot Gun Settings"
-			}
-
-			-- Set the default values
-			AimbotGunSettings.Options["#Default"] = {
-				aimbotgun_aimbot_silent = "0",
-				aimbotgun_aimbot_reflick = "0",
-				aimbotgun_aimbot_reflick_delay = "0.025",
-				aimbotgun_triggerbot = "0",
-				aimbotgun_aimbot_fov = "20",
-				aimbotgun_only_hostile_npcs = "0"
-			}
-			panel:AddControl("ComboBox", AimbotGunSettings)
-
+		-- Aimbot
+		spawnmenu.AddToolMenuOption("Utilities", "AimbotGun", "AimbotGunSettingsAimbot", "Aimbot", "", "", function(panel)
 			-- Show the author
-			panel:AddControl("Label", { Text = "By buu342(RagdollBlood GUI), eric0210(Transcoder to support Aimbot Gun)" })
-			panel:AddControl("Label", { Text = "" })
-
-			panel:AddControl("Header", { Description = "Aimbot Preferences" })
-
-			-- Silent aim
-			panel:AddControl("CheckBox", {
-				Label = "Enable silent aim",
-				Command = "aimbotgun_aimbot_silent",
-			})
-			panel:AddControl("Label", { Text = "" })
-
-			-- Reflick
-			panel:AddControl("CheckBox", {
-				Label = "Enable re-flick",
-				Command = "aimbotgun_aimbot_reflick",
-			})
-
-			-- Reflick delay
-			panel:AddControl("Slider", {
-				Label = "Delay before re-flick",
-				Command = "aimbotgun_aimbot_reflick_delay",
-				Type = "Float",
-				Min = "0",
-				Max = "0.2",
-			})
-			panel:AddControl("Label", { Text = "" })
-
-			-- Triggerbot
-			panel:AddControl("CheckBox", {
-				Label = "Enable trigger-bot",
-				Command = "aimbotgun_triggerbot",
-			})
-			panel:AddControl("Label", { Text = "" })
+			panel:Help("By buu342(RagdollBlood GUI), eric0210(Transcoder to support Aimbot Gun)")
+			panel:Help("")
 
 			-- FoV
-			panel:AddControl("Slider", {
-				Label = "FoV",
-				Command = "aimbotgun_aimbot_fov",
-				Type = "Float",
-				Min = "0.1",
-				Max = "2",
-			})
+			panel:NumSlider("FoV", "aimbotgun_aimbot_fov", 0.1, 2, 3)
+			panel:ControlHelp("Field-of-View filter.")
+
+			panel:CheckBox("Enable silent aim", "aimbotgun_aimbot_silent")
+			panel:ControlHelp("Turn your bullets into guided missile (a.k.a. Magic bullets)")
+
+			-- Reflick
+			panel:CheckBox("Enable Reflick", "aimbotgun_aimbot_reflick")
+			panel:ControlHelp("Flick to target and quickly flick back to original angle.")
+
+			-- Reflick delay
+			panel:NumSlider("Reflick Delay", "aimbotgun_aimbot_reflick_delay", 0, 0.2, 3)
+			panel:ControlHelp("The delay to flick back to your original angle. (in seconds)")
+
+			-- Triggerbot
+			panel:CheckBox("Enable trigger-bot", "aimbotgun_triggerbot")
+			panel:ControlHelp("Automatically shoot target(s) on sight.")
+
 			-- Wall check
-			panel:AddControl("CheckBox", {
-				Label = "Enable wall check",
-				Command = "aimbotgun_wallcheck",
-			})
-			panel:AddControl("Label", { Text = "" })
+			panel:CheckBox("Enable wall check", "aimbotgun_wallcheck")
+			panel:ControlHelp("Enable/disable wall checks. Disable it to shoot your target(s) through walls.")
 
-			panel:AddControl("Label", { Text = "WARNING!" })
-			panel:AddControl("Label", { Text = "Closest and Prefer Head bone preference mode will PERFORM VISIBLE CHECKS FOR ALL EACH EXISTING BONES IN ALL EXISTING ENTITIES" })
-			panel:AddControl("Label", { Text = "Which can cause EXTREME LAG and even make your game CRASH!" })
-			panel:AddControl("Label", { Text = "Use at your own risk!" })
+			local boneComboBox = panel:ComboBox("Bone preference", "aimbotgun_bone")
+			boneComboBox:AddChoice("Closest", 0)
+			boneComboBox:AddChoice("Prefer Head", 1)
+			boneComboBox:AddChoice("Head Only", 2, true)
+			panel:ControlHelp("Select which part of the target to aim.")
+		end)
 
-			local boneComboBox = {}
-			boneComboBox.Label = "Bone preference"
-			boneComboBox.MenuButton = 0
-			boneComboBox.Options = {}
-			boneComboBox.Options["Closest"] = { aimbotgun_bone = 0 }
-			boneComboBox.Options["Prefer Head"] = { aimbotgun_bone = 1 }
-			boneComboBox.Options["Head Only"] = { aimbotgun_bone = 2 }
-			panel:AddControl("ComboBox", boneComboBox)
+		-- Aimbot
+		spawnmenu.AddToolMenuOption("Utilities", "AimbotGun", "AimbotGunSettingsGlobal", "Global", "", "", function(panel)
+			panel:CheckBox("Enable global aimbot", "aimbotgun_global")
+			panel:ControlHelp("If enabled, you can use the aimbot with all weapons which shoots bullets.")
 
-			panel:AddControl("Header", { Description = "Aimbot target" })
+			panel:NumSlider("Spread multiplier", "aimbotgun_global_spreadmultiplier", 0, 2.0, 3)
+			panel:ControlHelp("Bullet spread multiplier. Set this to 0 to enable NoSpread.")
 
-			panel:AddControl("CheckBox", {
-				Label = "Attack players",
-				Command = "aimbotgun_target_player",
-			})
+			panel:NumSlider("Triggerbot - delay between trigger", "aimbotgun_global_triggerdelay", 0, 2.0, 3)
+			panel:ControlHelp("Delay between triggerbot triggers your gun trigger. Setting this value too low might cause some issues especially while reloading.")
+		end)
 
-			panel:AddControl("CheckBox", {
-				Label = "Attack non-hostile NPCs",
-				Command = "aimbotgun_friendly_fire",
-			})
+		-- Targets
+		spawnmenu.AddToolMenuOption("Utilities", "AimbotGun", "AimbotGunSettingsTarget", "Target", "", "", function(panel)
+			panel:CheckBox("Attack all valid entities", "aimbotgun_target_all")
+			panel:CheckBox("Attack players", "aimbotgun_target_player")
+			panel:CheckBox("Attack bird NPCs", "aimbotgun_target_bird")
+			panel:CheckBox("Attack combine NPCs", "aimbotgun_target_combine")
+			panel:CheckBox("Attack combine hunter NPCs", "aimbotgun_target_hunter")
+			panel:CheckBox("Attack manhack NPCs", "aimbotgun_target_manhack")
+			panel:CheckBox("Attack scanner NPCs", "aimbotgun_target_scanner")
+			panel:CheckBox("Attack antlion NPCs", "aimbotgun_target_antlion")
+			panel:CheckBox("Attack headcrab NPCs", "aimbotgun_target_headcrab")
+			panel:CheckBox("Attack zombie NPCs", "aimbotgun_target_zombie")
+			panel:CheckBox("Attack barnacle NPCs", "aimbotgun_target_barnacle")
+		end)
 
-			panel:AddControl("Label", { Text = "" })
+		-- Visual
+		spawnmenu.AddToolMenuOption("Utilities", "AimbotGun", "AimbotGunSettingsVisual", "Visual", "", "", function(panel)
+			panel:NumSlider("Crosshair spin speed", "aimbotgun_visual_crosshair_spin_speed", "0.01", "10", 1)
+			
+			panel:ColorPicker("Custom crosshair color",	"aimbotgun_visual_crosshair_color_red", "aimbotgun_visual_crosshair_color_green", "aimbotgun_visual_crosshair_color_blue", "aimbotgun_visual_crosshair_color_alpha")
+			panel:CheckBox("Rainbow crosshair", "aimbotgun_visual_crosshair_rainbow")
+			panel:NumSlider("Rainbow crosshair - Rainbow speed", "aimbotgun_visual_crosshair_rainbow_speed", "0.01", "20", 3)
 
-			panel:AddControl("CheckBox", {
-				Label = "Attack crow, pigeon and seagull NPCs",
-				Command = "aimbotgun_target_bird",
-			})
-
-			panel:AddControl("Label", { Text = "" })
-
-			panel:AddControl("CheckBox", {
-				Label = "Attack combine NPCs",
-				Command = "aimbotgun_target_combine",
-			})
-
-			panel:AddControl("CheckBox", {
-				Label = "Attack combine hunter NPCs",
-				Command = "aimbotgun_target_hunter",
-			})
-
-			panel:AddControl("CheckBox", {
-				Label = "Attack manhack NPCs",
-				Command = "aimbotgun_target_manhack",
-			})
-
-			panel:AddControl("CheckBox", {
-				Label = "Attack city scanner and claw scanner NPCs",
-				Command = "aimbotgun_target_scanner",
-			})
-
-			panel:AddControl("Label", { Text = "" })
-
-			panel:AddControl("CheckBox", {
-				Label = "Attack antlion NPCs",
-				Command = "aimbotgun_target_antlion",
-			})
-
-			panel:AddControl("Label", { Text = "" })
-
-			panel:AddControl("CheckBox", {
-				Label = "Attack headcrab NPCs",
-				Command = "aimbotgun_target_headcrab",
-			})
-
-			panel:AddControl("CheckBox", {
-				Label = "Attack zombie NPCs",
-				Command = "aimbotgun_target_zombie",
-			})
-
-			panel:AddControl("CheckBox", {
-				Label = "Attack barnacle NPCs",
-				Command = "aimbotgun_target_barnacle",
-			})
-
-			panel:AddControl("Header", { Description = "Visual" })
-
-			panel:AddControl("Slider", {
-				Label = "Crosshair spin speed",
-				Command = "aimbotgun_visual_crosshair_spin_speed",
-				Type = "Float",
-				Min = "0.01",
-				Max = "100",
-			})
-			panel:AddControl("Label", { Text = "" })
-
-			panel:AddControl("Color", {
-				Label = "Custom crosshair color",
-				Red = "aimbotgun_visual_crosshair_color_red",
-				Green = "aimbotgun_visual_crosshair_color_green",
-				Blue = "aimbotgun_visual_crosshair_color_blue",
-				Alpha = "aimbotgun_visual_crosshair_color_alpha"
-			})
-
-			panel:AddControl("CheckBox", {
-				Label = "Rainbow crosshair",
-				Command = "aimbotgun_visual_crosshair_rainbow",
-			})
-
-			panel:AddControl("Slider", {
-				Label = "Rainbow crosshair - Rainbow speed",
-				Command = "aimbotgun_visual_crosshair_rainbow_speed",
-				Type = "Float",
-				Min = "0.01",
-				Max = "20",
-			})
-
-			panel:AddControl("Label", { Text = "" })
-
-			panel:AddControl("Color", {
-				Label = "Custom target mark color",
-				Red = "aimbotgun_visual_target_mark_color_red",
-				Green = "aimbotgun_visual_target_mark_color_green",
-				Blue = "aimbotgun_visual_target_mark_color_blue",
-				Alpha = "aimbotgun_visual_target_mark_color_alpha"
-			})
-
-			panel:AddControl("CheckBox", {
-				Label = "Rainbow target mark",
-				Command = "aimbotgun_visual_target_mark_rainbow",
-			})
-
-			panel:AddControl("Slider", {
-				Label = "Rainbow target mark - Rainbow speed",
-				Command = "aimbotgun_visual_target_mark_rainbow_speed",
-				Type = "Float",
-				Min = "0.01",
-				Max = "20",
-			})
+			panel:ColorPicker("Custom target mark color",	"aimbotgun_visual_target_mark_color_red", "aimbotgun_visual_target_mark_color_green", "aimbotgun_visual_target_mark_color_blue", "aimbotgun_visual_target_mark_color_alpha")
+			panel:CheckBox("Rainbow target mark", "aimbotgun_visual_target_mark_rainbow")
+			panel:NumSlider("Rainbow target mark - Rainbow speed", "aimbotgun_visual_target_mark_rainbow_speed", "0.01", "20", 3)
 		end)
 	end)
 end
