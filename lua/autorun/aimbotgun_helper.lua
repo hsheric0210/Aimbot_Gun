@@ -26,14 +26,14 @@ if not istable(AimbotGun) then
 	}
 	AimbotGun.BoneBlacklists = {
 		["models/barnacle.mdl"] = {
-			"Barnacle.tongue1",
-			"Barnacle.tongue2",
-			"Barnacle.tongue3",
-			"Barnacle.tongue4",
-			"Barnacle.tongue5",
-			"Barnacle.tongue6",
-			"Barnacle.tongue7",
-			"Barnacle.tongue8"
+			["Barnacle.tongue1"] = true,
+			["Barnacle.tongue2"] = true,
+			["Barnacle.tongue3"] = true,
+			["Barnacle.tongue4"] = true,
+			["Barnacle.tongue5"] = true,
+			["Barnacle.tongue6"] = true,
+			["Barnacle.tongue7"] = true,
+			["Barnacle.tongue8"] = true
 		}
 	}
 end
@@ -102,7 +102,7 @@ function AimbotGun.FindAvailableBones(ply, ent, boneName, isBoneAttachment, bone
 		else
 			--Search head by bone name
 			local boneIndex = ent:LookupBone(boneName)
-			if boneIndex and alreadySeenBones[boneIndex] == nil then
+			if boneIndex and not alreadySeenBones[boneIndex] then
 				local boneMatrix = ent:GetBoneMatrix(boneIndex)
 				if boneMatrix ~= nil then
 					local pos = boneMatrix:GetTranslation() + boneMatrix:GetForward() * boneAngularOffset
@@ -123,9 +123,9 @@ function AimbotGun.FindAvailableBones(ply, ent, boneName, isBoneAttachment, bone
 	if GetConVar("aimbotgun_aimbot_bone"):GetInt() < 2 then
 		-- Search for each bone
 		for boneIndex = 1, ent:GetBoneCount() - 1 do
-			if alreadySeenBones[boneIndex] == nil then
+			if not alreadySeenBones[boneIndex] then
 				local boneName = ent:GetBoneName(boneIndex)
-				if excludedBoneNames[boneName] == nil then
+				if not excludedBoneNames[boneName] then
 					local boneMatrix = ent:GetBoneMatrix(boneIndex)
 					if boneMatrix then
 						pos = boneMatrix:GetTranslation()

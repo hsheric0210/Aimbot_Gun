@@ -49,7 +49,7 @@ if CLIENT then
 			panel:ControlHelp("Select which part of the target to aim.")
 
 			local bonePref = GetConVar("aimbotgun_aimbot_bone"):GetInt()
-			local boneComboBox = panel:ComboBox("Bone preference", "aimbotgun_aimbot_bon")
+			local boneComboBox = panel:ComboBox("Bone preference", "aimbotgun_aimbot_bone")
 			boneComboBox:AddChoice("0 - Closest", 0)
 			boneComboBox:AddChoice("1 - Prefer Head", 1)
 			boneComboBox:AddChoice("2 - Head Only", 2, true)
@@ -57,10 +57,13 @@ if CLIENT then
 			panel:ControlHelp("Select which part of the target to aim.")
 
 			-- Wall check
-			panel:CheckBox("Enable Wall Check", "aimbotgun_wallcheck")
+			panel:CheckBox("Enable Wall Check", "aimbotgun_aimbot_wallcheck")
 			panel:ControlHelp("Enable/disable wall checks. Disable it to shoot your target(s) through walls.")
 
-			panel:Help("Only available on 'When firing bullets' mode:")
+			panel:Help("")
+			panel:Help("")
+			panel:Help("These options are only available for 'When firing bullets' mode:")
+			panel:Help("")
 
 			panel:CheckBox("Enable Silent Aim", "aimbotgun_aimbot_silent")
 			panel:ControlHelp("Turn your bullets into guided missile. (a.k.a. Magic bullets)")

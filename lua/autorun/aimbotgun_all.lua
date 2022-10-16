@@ -255,7 +255,8 @@ local Tick = function()
 		end
 	elseif CLIENT and GetConVar("aimbotgun_aimbot_mode"):GetInt() == 1 then
 		local player = LocalPlayer()
-		local target = AimbotGun.GetClosestBone(LocalPlayer())
+		if not IsValid(player) then return end
+		local target = AimbotGun.GetClosestBone(player)
 		player.ClientAimbotTarget = target
 		if IsTargetValid(target) then
 			player.Trigger = true
@@ -282,6 +283,13 @@ local ApplyAim = function()
 		local ang = Angle(pangle.p + pitchDelta, pangle.y + yawDelta, pangle.r)
 		ang:Normalize()
 		ply:SetEyeAngles(ang)
+
+		local trace = ply:GetEyeTrace()
+		if trace.HitNonWorld and AimbotGun.IsTargetValid(ply, trace.Entity) then
+			net.Start("AimbotGunAutoTrigger")
+			net.WriteBool(true)
+			net.SendToServer()
+		end
 	end
 end
 
@@ -307,8 +315,14 @@ local DebugTargetDataReceive = function(len, ply)
 	plr.ClientAimbotTargetPos = aimtarget
 end
 
+local AutoTrigger = function(len, ply)
+	ply.Triggerbot = net.ReadBool()
+end
+
 if SERVER then
 	util.AddNetworkString("AimbotGunDebugTargetData")
+	util.AddNetworkString("AimbotGunAutoTrigger")
+	net.Receive("AimbotGunAutoTrigger", AutoTrigger)
 elseif CLIENT then
 	net.Receive("AimbotGunDebugTargetData", DebugTargetDataReceive)
 end
