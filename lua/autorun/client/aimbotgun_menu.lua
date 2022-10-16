@@ -46,7 +46,7 @@ if CLIENT then
 			smoothComboBox:AddChoice("3 - Sine", 3)
 			smoothComboBox:AddChoice("4 - Quad Sine", 4)
 			smoothComboBox:ChooseOption(smoothComboBox:GetOptionTextByData(smoothPref), smoothPref)
-			panel:ControlHelp("Select which part of the target to aim.")
+			panel:ControlHelp("Only available on 'When pressed keybind' mode.")
 
 			local bonePref = GetConVar("aimbotgun_aimbot_bone"):GetInt()
 			local boneComboBox = panel:ComboBox("Bone preference", "aimbotgun_aimbot_bone")
@@ -60,11 +60,9 @@ if CLIENT then
 			panel:CheckBox("Enable Wall Check", "aimbotgun_aimbot_wallcheck")
 			panel:ControlHelp("Enable/disable wall checks. Disable it to shoot your target(s) through walls.")
 
-			-- Wall check
-			panel:CheckBox("Enable Wall Check", "aimbotgun_aimbot_wallcheck")
-			panel:ControlHelp("Enable/disable wall checks. Disable it to shoot your target(s) through walls.")
+			panel:CheckBox("Triggerbot", "aimbotgun_triggerbot")
+			panel:ControlHelp("Automatically shoot targets on your sight.")
 
-			-- Triggerbot
 			panel:CheckBox("Lock target", "aimbotgun_aimbot_locktarget")
 			panel:ControlHelp("Prevent target switching while pressed the keybind. Only available on 'When pressed keybind' mode.")
 

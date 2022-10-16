@@ -261,6 +261,7 @@ local Tick = function()
 		if not IsValid(player) then return end
 		if GetConVar("aimbotgun_optimization_searchifbindpressed"):GetBool() and not (input.IsButtonDown(GetConVar("aimbotgun_global_bind_aimassist"):GetInt()) or input.IsButtonDown(GetConVar("aimbotgun_global_bind_flick"):GetInt())) then
 			player.ClientAimbotTarget = nil
+			ply.FirstTarget = nil
 			return
 		end
 		local priorityEntityID
