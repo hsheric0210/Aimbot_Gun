@@ -7,13 +7,13 @@ end
 if not istable(AimbotGun) then
 	AimbotGun = {}
 	AimbotGun.DeathSequences = {
-		["models/barnacle.mdl"] = { 4, 15 },
-		["models/antlion_guard.mdl"] = { 44 },
-		["models/hunter.mdl"] = { 124, 125, 126, 127, 128 },
-		["models/headcrabclassic.mdl"] = { 13, 14, 15, 16, 17, 18, 19 },
-		["models/headcrab.mdl"] = { 10, 11, 12, 13, 14 },
-		["models/headcrabblack.mdl"] = { 16, 17, 18, 20, 22 },
-		["models/manhack.mdl"] = { 4, 12, 13 }
+		["models/barnacle.mdl"] = { [4] = true, [15] = true },
+		["models/antlion_guard.mdl"] = { [44] = true },
+		["models/hunter.mdl"] = { [124] = true, [125] = true, [126] = true, [127] = true, [128] = true },
+		["models/headcrabclassic.mdl"] = { [13] = true, [14] = true, [15] = true, [16] = true, [17] = true, [18] = true, [19] = true },
+		["models/headcrab.mdl"] = { [10] = true, [11] = true, [12] = true, [13] = true, [14] = true },
+		["models/headcrabblack.mdl"] = { [16] = true, [17] = true, [18] = true, [20] = true, [22] = true },
+		["models/manhack.mdl"] = { [4] = true, [12] = true, [13] = true }
 	}
 	AimbotGun.DefaultAttachmentNames = { "head", "eyes", "eye" }
 	AimbotGun.BoneNames = {
@@ -84,10 +84,10 @@ end
 
 function AimbotGun.FindAvailableBones(ply, ent, boneName, isBoneAttachment, boneAngularOffset, excludedBoneNames)
 	local available = {}
-	local alreadySeenBones = { 0 }
+	local alreadySeenBones = { [0] = true }
 
-	local headPriority = (GetConVar("aimbotgun_bone"):GetInt() > 0) and 2 or 1
-	local wallCheck = GetConVar("aimbotgun_wallcheck"):GetInt() > 0
+	local headPriority = (GetConVar("aimbotgun_aimbot_bone"):GetInt() > 0) and 2 or 1
+	local wallCheck = GetConVar("aimbotgun_aimbot_wallcheck"):GetInt() > 0
 
 	if boneName ~= nil then
 		if isBoneAttachment then
@@ -102,13 +102,13 @@ function AimbotGun.FindAvailableBones(ply, ent, boneName, isBoneAttachment, bone
 		else
 			--Search head by bone name
 			local boneIndex = ent:LookupBone(boneName)
-			if boneIndex and not table.HasValue(alreadySeenBones, boneIndex) then
+			if boneIndex and alreadySeenBones[boneIndex] == nil then
 				local boneMatrix = ent:GetBoneMatrix(boneIndex)
 				if boneMatrix ~= nil then
 					local pos = boneMatrix:GetTranslation() + boneMatrix:GetForward() * boneAngularOffset
 					if not wallCheck or AimbotGun.IsVisible(ply, ent, pos) then
 						table.insert(available, { Name = boneName, Priority = headPriority, Pos = pos })
-						table.insert(alreadySeenBones, boneIndex)
+						table.Add(alreadySeenBones, { [boneIndex] = true })
 					end
 				end
 			end
@@ -120,15 +120,18 @@ function AimbotGun.FindAvailableBones(ply, ent, boneName, isBoneAttachment, bone
 		table.insert(available, { Name = "Root_Bone", Priority = 1, Pos = pos })
 	end
 
-	if GetConVar("aimbotgun_bone"):GetInt() < 2 then
+	if GetConVar("aimbotgun_aimbot_bone"):GetInt() < 2 then
 		-- Search for each bone
 		for boneIndex = 1, ent:GetBoneCount() - 1 do
-			if not table.HasValue(alreadySeenBones, boneIndex) and not table.HasValue(excludedBoneNames, ent:GetBoneName(boneIndex)) then
-				local boneMatrix = ent:GetBoneMatrix(boneIndex)
-				if boneMatrix then
-					pos = boneMatrix:GetTranslation()
-					if not wallCheck or AimbotGun.IsVisible(ply, ent, pos) then
-						table.insert(available, { Name = ent:GetBoneName(boneIndex), Priority = 0, Pos = pos })
+			if alreadySeenBones[boneIndex] == nil then
+				local boneName = ent:GetBoneName(boneIndex)
+				if excludedBoneNames[boneName] == nil then
+					local boneMatrix = ent:GetBoneMatrix(boneIndex)
+					if boneMatrix then
+						pos = boneMatrix:GetTranslation()
+						if not wallCheck or AimbotGun.IsVisible(ply, ent, pos) then
+							table.insert(available, { Name = boneName, Priority = 0, Pos = pos })
+						end
 					end
 				end
 			end
@@ -265,7 +268,7 @@ function AimbotGun.IsTargetValid(ply, entity)
 			return false
 		end
 
-		if table.HasValue(AimbotGun.DeathSequences[string.lower(entity:GetModel() or "")] or {}, entity:GetSequence()) then
+		if (AimbotGun.DeathSequences[string.lower(entity:GetModel() or "")] or {})[entity:GetSequence()] then
 			return false
 		end
 
@@ -305,8 +308,8 @@ function AimbotGun.GetTargetName(target)
 		name = targetEnt:Name()
 	end
 
-	local seqID = targetEnt:GetSequence()
-	local seqName = targetEnt:GetSequenceName(seqID)
+	local seqID = targetEnt:GetSequence() or -1
+	local seqName = targetEnt:GetSequenceName(seqID) or "Unknown"
 	return name .. " model=" .. targetEnt:GetModel() .. ", part=" .. boneName .. ", sequence=[" .. seqID .. "]" .. seqName
 end
 

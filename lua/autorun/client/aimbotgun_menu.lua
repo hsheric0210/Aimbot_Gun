@@ -10,42 +10,89 @@ if CLIENT then
 			panel:NumSlider("FoV", "aimbotgun_aimbot_fov", 0.1, 2, 3)
 			panel:ControlHelp("Field-of-View filter.")
 
-			panel:CheckBox("Enable silent aim", "aimbotgun_aimbot_silent")
-			panel:ControlHelp("Turn your bullets into guided missile (a.k.a. Magic bullets)")
+			local modePref = GetConVar("aimbotgun_aimbot_mode"):GetInt()
+			local modeComboBox = panel:ComboBox("Bone preference", "aimbotgun_aimbot_mode")
+			modeComboBox:AddChoice("0 - When firing bullets", 0, true)
+			modeComboBox:AddChoice("1 - When pressed keybind", 1)
+			modeComboBox:ChooseOption(modeComboBox:GetOptionTextByData(modePref), modePref)
+			panel:ControlHelp("Aimbot mode.")
+
+			panel:NumSlider("Min Yaw Speed", "aimbotgun_aimbot_minyawspeed", 0.05, 180, 4)
+			panel:ControlHelp("Limit the yaw changes PER A FRAME.")
+
+			panel:NumSlider("Max Yaw Speed", "aimbotgun_aimbot_maxyawspeed", 0.05, 180, 4)
+			panel:ControlHelp("Limit the yaw changes PER A FRAME.")
+
+			panel:NumSlider("Min Pitch Speed", "aimbotgun_aimbot_minpitchspeed", 0.05, 180, 4)
+			panel:ControlHelp("Limit the pitch changes PER A FRAME.")
+
+			panel:NumSlider("Max Pitch Speed", "aimbotgun_aimbot_maxpitchspeed", 0.05, 180, 4)
+			panel:ControlHelp("Limit the pitch changes PER A FRAME.")
+
+			panel:NumSlider("Yaw Smoothing", "aimbotgun_aimbot_yawsmooth", 1, 20, 3)
+			panel:ControlHelp("Yaw movement smoothing.")
+
+			panel:NumSlider("Pitch Smoothing", "aimbotgun_aimbot_pitchsmooth", 1, 20, 3)
+			panel:ControlHelp("Pitch movement smoothing.")
+			
+			panel:NumSlider("Prediction", "aimbotgun_aimbot_predictsize", 0, 5, 4)
+			panel:ControlHelp("Target movement prediction.")
+
+			local smoothPref = GetConVar("aimbotgun_aimbot_smooth"):GetInt()
+			local smoothComboBox = panel:ComboBox("Smoothing algorithm", "aimbotgun_aimbot_smooth")
+			smoothComboBox:AddChoice("0 - Simple", 0, true)
+			smoothComboBox:AddChoice("1 - Line", 1)
+			smoothComboBox:AddChoice("2 - Quad", 2)
+			smoothComboBox:AddChoice("3 - Sine", 3)
+			smoothComboBox:AddChoice("4 - Quad Sine", 4)
+			smoothComboBox:ChooseOption(smoothComboBox:GetOptionTextByData(smoothPref), smoothPref)
+			panel:ControlHelp("Select which part of the target to aim.")
+
+			local bonePref = GetConVar("aimbotgun_aimbot_bone"):GetInt()
+			local boneComboBox = panel:ComboBox("Bone preference", "aimbotgun_aimbot_bon")
+			boneComboBox:AddChoice("0 - Closest", 0)
+			boneComboBox:AddChoice("1 - Prefer Head", 1)
+			boneComboBox:AddChoice("2 - Head Only", 2, true)
+			boneComboBox:ChooseOption(boneComboBox:GetOptionTextByData(bonePref), bonePref)
+			panel:ControlHelp("Select which part of the target to aim.")
+
+			-- Wall check
+			panel:CheckBox("Enable Wall Check", "aimbotgun_wallcheck")
+			panel:ControlHelp("Enable/disable wall checks. Disable it to shoot your target(s) through walls.")
+
+			panel:Help("Only available on 'When firing bullets' mode:")
+
+			panel:CheckBox("Enable Silent Aim", "aimbotgun_aimbot_silent")
+			panel:ControlHelp("Turn your bullets into guided missile. (a.k.a. Magic bullets)")
 
 			-- Reflick
 			panel:CheckBox("Enable Reflick", "aimbotgun_aimbot_reflick")
 			panel:ControlHelp("Flick to target and quickly flick back to original angle.")
 
 			-- Reflick delay
-			panel:NumSlider("Reflick Delay", "aimbotgun_aimbot_reflick_delay", 0, 0.2, 3)
+			panel:NumSlider("Reflick Delay", "aimbotgun_aimbot_reflick_delay", 0, 0.1, 3)
 			panel:ControlHelp("The delay to flick back to your original angle. (in seconds)")
 
 			-- Triggerbot
-			panel:CheckBox("Enable trigger-bot", "aimbotgun_triggerbot")
+			panel:CheckBox("Enable Trigger-bot", "aimbotgun_triggerbot")
 			panel:ControlHelp("Automatically shoot target(s) on sight.")
-
-			-- Wall check
-			panel:CheckBox("Enable wall check", "aimbotgun_wallcheck")
-			panel:ControlHelp("Enable/disable wall checks. Disable it to shoot your target(s) through walls.")
-
-			local boneComboBox = panel:ComboBox("Bone preference", "aimbotgun_bone")
-			boneComboBox:AddChoice("Closest", 0)
-			boneComboBox:AddChoice("Prefer Head", 1)
-			boneComboBox:AddChoice("Head Only", 2, true)
-			panel:ControlHelp("Select which part of the target to aim.")
 		end)
 
 		-- Aimbot
 		spawnmenu.AddToolMenuOption("Utilities", "AimbotGun", "AimbotGunSettingsGlobal", "Global", "", "", function(panel)
 			panel:CheckBox("Enable global aimbot", "aimbotgun_global")
-			panel:ControlHelp("If enabled, you can use the aimbot with all weapons which shoots bullets.")
+			panel:ControlHelp("Enable aimbot for all weapons.")
 
-			panel:NumSlider("Spread multiplier", "aimbotgun_global_spreadmultiplier", 0, 2.0, 3)
-			panel:ControlHelp("Bullet spread multiplier. Set this to 0 to enable NoSpread.")
+			panel:KeyBinder("Keybind for Aim Assist", "aimbotgun_global_bind_aimassist", "Keybind for Flickshot", "aimbotgun_global_bind_flick")
 
 			panel:NumSlider("Triggerbot - delay between trigger", "aimbotgun_global_triggerdelay", 0, 2.0, 3)
 			panel:ControlHelp("Delay between triggerbot triggers your gun trigger. Setting this value too low might cause some issues especially while reloading.")
+
+			panel:CheckBox("No spread mode", "aimbotgun_global_nospread")
+			panel:ControlHelp("Disable bullet spreads.")
+
+			panel:NumSlider("Bullet spread multiplier", "aimbotgun_global_spreadmultiplier", 0, 2.0, 3)
+			panel:ControlHelp("Only available when 'When firing bullets' mode enabled.")
 		end)
 
 		-- Targets
@@ -74,6 +121,14 @@ if CLIENT then
 			panel:ColorPicker("Custom target mark color",	"aimbotgun_visual_target_mark_color_red", "aimbotgun_visual_target_mark_color_green", "aimbotgun_visual_target_mark_color_blue", "aimbotgun_visual_target_mark_color_alpha")
 			panel:CheckBox("Rainbow target mark", "aimbotgun_visual_target_mark_rainbow")
 			panel:NumSlider("Rainbow target mark - Rainbow speed", "aimbotgun_visual_target_mark_rainbow_speed", "0.01", "20", 3)
+		end)
+
+		-- Debuggings
+		spawnmenu.AddToolMenuOption("Utilities", "AimbotGun", "AimbotGunSettingsDebug", "Debugging", "", "", function(panel)
+			panel:CheckBox("Print target data", "aimbotgun_debug_targetdata")
+			panel:ControlHelp("Print the previously aimed target data")
+
+			panel:CheckBox("Print triggerbot trigger timings", "aimbotgun_debug_triggerbot")
 		end)
 	end)
 end
