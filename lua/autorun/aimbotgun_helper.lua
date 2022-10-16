@@ -141,7 +141,7 @@ function AimbotGun.FindAvailableBones(ply, ent, boneName, isBoneAttachment, bone
 	return available
 end
 
-function AimbotGun.GetClosestBone(ply)
+function AimbotGun.GetClosestBone(ply, priorityEntityID)
 	local pos = ply:GetShootPos()
 	local ang = ply:GetAimVector()
 
@@ -168,10 +168,13 @@ function AimbotGun.GetClosestBone(ply)
 			end
 		end
 
-		for _, bestBone in pairs(closestEachEntity) do
+		for eid, bestBone in pairs(closestEachEntity) do
 			if bestBone.Bone ~= 0 then
 				local delta = bestBone.FOV
-				if ((closest.Entity == 0) or (delta < closest.FOV)) then
+				if eid == priorityEntityID then
+					delta = delta - 100
+				end
+				if (closest.Entity == 0) or (delta < closest.FOV) then
 					closest = { Entity = target, FOV = delta, Bone = bestBone.Bone }
 				end
 			end
@@ -302,7 +305,7 @@ function AimbotGun.GetTargetName(target)
 		return "Invalid part=" .. boneName
 	end
 
-	local name = targetEnt:GetClass()
+	local name = "[" .. targetEnt:EntIndex() .. "]" .. targetEnt:GetClass()
 
 	if targetEnt:IsPlayer() then
 		name = targetEnt:Name()

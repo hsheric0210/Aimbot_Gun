@@ -60,6 +60,14 @@ if CLIENT then
 			panel:CheckBox("Enable Wall Check", "aimbotgun_aimbot_wallcheck")
 			panel:ControlHelp("Enable/disable wall checks. Disable it to shoot your target(s) through walls.")
 
+			-- Wall check
+			panel:CheckBox("Enable Wall Check", "aimbotgun_aimbot_wallcheck")
+			panel:ControlHelp("Enable/disable wall checks. Disable it to shoot your target(s) through walls.")
+
+			-- Triggerbot
+			panel:CheckBox("Lock target", "aimbotgun_aimbot_locktarget")
+			panel:ControlHelp("Prevent target switching while pressed the keybind. Only available on 'When pressed keybind' mode.")
+
 			panel:Help("")
 			panel:Help("")
 			panel:Help("These options are only available for 'When firing bullets' mode:")
@@ -75,10 +83,6 @@ if CLIENT then
 			-- Reflick delay
 			panel:NumSlider("Reflick Delay", "aimbotgun_aimbot_reflick_delay", 0, 0.1, 3)
 			panel:ControlHelp("The delay to flick back to your original angle. (in seconds)")
-
-			-- Triggerbot
-			panel:CheckBox("Enable Trigger-bot", "aimbotgun_triggerbot")
-			panel:ControlHelp("Automatically shoot target(s) on sight.")
 		end)
 
 		-- Aimbot
@@ -124,6 +128,12 @@ if CLIENT then
 			panel:ColorPicker("Custom target mark color",	"aimbotgun_visual_target_mark_color_red", "aimbotgun_visual_target_mark_color_green", "aimbotgun_visual_target_mark_color_blue", "aimbotgun_visual_target_mark_color_alpha")
 			panel:CheckBox("Rainbow target mark", "aimbotgun_visual_target_mark_rainbow")
 			panel:NumSlider("Rainbow target mark - Rainbow speed", "aimbotgun_visual_target_mark_rainbow_speed", "0.01", "20", 3)
+		end)
+
+		-- Debuggings
+		spawnmenu.AddToolMenuOption("Utilities", "AimbotGun", "AimbotGunSettingsOptimization", "Optimization", "", "", function(panel)
+			panel:CheckBox("Only search targets when the aimbot keybind pressed", "aimbotgun_optimization_searchifbindpressed")
+			panel:ControlHelp("Only available on 'When pressed keybind' mode")
 		end)
 
 		-- Debuggings
