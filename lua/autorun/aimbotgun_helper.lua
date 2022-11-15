@@ -86,7 +86,7 @@ function AimbotGun.FindAvailableBones(ply, ent, boneName, isBoneAttachment, bone
 	local available = {}
 	local alreadySeenBones = { [0] = true }
 
-	local headPriority = (GetConVar("aimbotgun_aimbot_bone"):GetInt() > 0) and 2 or 1
+	local headPriority = (GetConVar("aimbotgun_aimbot_bone"):GetInt() <= 1) and 2 or 1
 	local wallCheck = GetConVar("aimbotgun_aimbot_wallcheck"):GetInt() > 0
 
 	if boneName ~= nil then
@@ -120,7 +120,7 @@ function AimbotGun.FindAvailableBones(ply, ent, boneName, isBoneAttachment, bone
 		table.insert(available, { Name = "Root_Bone", Priority = 1, Pos = pos })
 	end
 
-	if GetConVar("aimbotgun_aimbot_bone"):GetInt() < 2 then
+	if GetConVar("aimbotgun_aimbot_bone"):GetInt() >= 1 then
 		-- Search for each bone
 		for boneIndex = 1, ent:GetBoneCount() - 1 do
 			if not alreadySeenBones[boneIndex] then
@@ -141,11 +141,9 @@ function AimbotGun.FindAvailableBones(ply, ent, boneName, isBoneAttachment, bone
 	return available
 end
 
-function AimbotGun.GetClosestBone(ply, priorityEntityID)
+function AimbotGun.GetClosestBone(ply, priorityEntityID, fovLimit)
 	local pos = ply:GetShootPos()
 	local ang = ply:GetAimVector()
-
-	local fovLimit = GetConVar("aimbotgun_aimbot_fov"):GetFloat()
 
 	local closest = { Entity = 0, FOV = 0, Bone = 0 }
 	local closestEachEntity = {}

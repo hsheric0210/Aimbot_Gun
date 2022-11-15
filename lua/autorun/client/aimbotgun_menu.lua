@@ -3,37 +3,57 @@ if CLIENT then
 		-- Aimbot
 		spawnmenu.AddToolMenuOption("Utilities", "AimbotGun", "AimbotGunSettingsAimbot", "Aimbot", "", "", function(panel)
 			-- Show the author
-			panel:Help("By buu342(RagdollBlood GUI), eric0210(Transcoder to support Aimbot Gun)")
+			panel:Help("By eric0210(Transcoder to support Aimbot Gun)")
 			panel:Help("")
 
 			-- FoV
-			panel:NumSlider("FoV", "aimbotgun_aimbot_fov", 0.1, 2, 3)
-			panel:ControlHelp("Field-of-View filter.")
+			panel:NumSlider("B - FoV", "aimbotgun_aimbot_fov_b", 0.1, 2, 4)
+			panel:ControlHelp("'Bullets' mode Field-of-View.")
+
+			panel:NumSlider("K - FoV", "aimbotgun_aimbot_fov_k", 0.1, 2, 4)
+			panel:ControlHelp("'Keybind' mode Field-of-View.")
 
 			local modePref = GetConVar("aimbotgun_aimbot_mode"):GetInt()
 			local modeComboBox = panel:ComboBox("Bone preference", "aimbotgun_aimbot_mode")
-			modeComboBox:AddChoice("0 - When firing bullets", 0, true)
-			modeComboBox:AddChoice("1 - When pressed keybind", 1)
+			modeComboBox:AddChoice("0 - Bullets", 0, true)
+			modeComboBox:AddChoice("1 - Both (Keybind + Accuracy)", 1)
+			modeComboBox:AddChoice("2 - Keybind", 2)
 			modeComboBox:ChooseOption(modeComboBox:GetOptionTextByData(modePref), modePref)
 			panel:ControlHelp("Aimbot mode.")
 
+			local smodePref = GetConVar("aimbotgun_aimbot_speedmode"):GetInt()
+			local smodeComboBox = panel:ComboBox("Aimspeed mode", "aimbotgun_aimbot_speedmode")
+			smodeComboBox:AddChoice("0 - Yaw/Pitch separated", 0, true)
+			smodeComboBox:AddChoice("1 - Combined", 1)
+			smodeComboBox:ChooseOption(smodeComboBox:GetOptionTextByData(smodePref), smodePref)
+			panel:ControlHelp("Aimbot speed mode.")
+
+			panel:NumSlider("Min Speed", "aimbotgun_aimbot_minspeed", 0.05, 180, 4)
+			panel:ControlHelp("Limit the rotation changes PER A FRAME, for Aimspeed mode '1'.")
+
+			panel:NumSlider("Max Speed", "aimbotgun_aimbot_maxspeed", 0.05, 180, 4)
+			panel:ControlHelp("Limit the rotation changes PER A FRAME, for Aimspeed mode '1'.")
+
 			panel:NumSlider("Min Yaw Speed", "aimbotgun_aimbot_minyawspeed", 0.05, 180, 4)
-			panel:ControlHelp("Limit the yaw changes PER A FRAME.")
+			panel:ControlHelp("Limit the yaw changes PER A FRAME, for Aimspeed mode '0'.")
 
 			panel:NumSlider("Max Yaw Speed", "aimbotgun_aimbot_maxyawspeed", 0.05, 180, 4)
-			panel:ControlHelp("Limit the yaw changes PER A FRAME.")
+			panel:ControlHelp("Limit the yaw changes PER A FRAME, for Aimspeed mode '0'.")
 
 			panel:NumSlider("Min Pitch Speed", "aimbotgun_aimbot_minpitchspeed", 0.05, 180, 4)
-			panel:ControlHelp("Limit the pitch changes PER A FRAME.")
+			panel:ControlHelp("Limit the pitch changes PER A FRAME, for Aimspeed mode '0'.")
 
 			panel:NumSlider("Max Pitch Speed", "aimbotgun_aimbot_maxpitchspeed", 0.05, 180, 4)
-			panel:ControlHelp("Limit the pitch changes PER A FRAME.")
+			panel:ControlHelp("Limit the pitch changes PER A FRAME, for Aimspeed mode '0'.")
 
-			panel:NumSlider("Yaw Smoothing", "aimbotgun_aimbot_yawsmooth", 1, 20, 3)
-			panel:ControlHelp("Yaw movement smoothing.")
+			panel:NumSlider("Smoothing", "aimbotgun_aimbot_smoothamount", 1, 20, 3)
+			panel:ControlHelp("Aim movement smoothing, for Aimspeed mode '1'.")
 
-			panel:NumSlider("Pitch Smoothing", "aimbotgun_aimbot_pitchsmooth", 1, 20, 3)
-			panel:ControlHelp("Pitch movement smoothing.")
+			panel:NumSlider("Yaw Smoothing", "aimbotgun_aimbot_yawsmoothamount", 1, 20, 3)
+			panel:ControlHelp("Yaw movement smoothing, for Aimspeed mode '0'.")
+
+			panel:NumSlider("Pitch Smoothing", "aimbotgun_aimbot_pitchsmoothamount", 1, 20, 3)
+			panel:ControlHelp("Pitch movement smoothing, for Aimspeed mode '0'.")
 			
 			panel:NumSlider("Prediction", "aimbotgun_aimbot_predictsize", 0, 5, 4)
 			panel:ControlHelp("Target movement prediction.")
@@ -46,13 +66,13 @@ if CLIENT then
 			smoothComboBox:AddChoice("3 - Sine", 3)
 			smoothComboBox:AddChoice("4 - Quad Sine", 4)
 			smoothComboBox:ChooseOption(smoothComboBox:GetOptionTextByData(smoothPref), smoothPref)
-			panel:ControlHelp("Only available on 'When pressed keybind' mode.")
+			panel:ControlHelp("Only available on 'Keybind' mode.")
 
 			local bonePref = GetConVar("aimbotgun_aimbot_bone"):GetInt()
 			local boneComboBox = panel:ComboBox("Bone preference", "aimbotgun_aimbot_bone")
-			boneComboBox:AddChoice("0 - Closest", 0)
+			boneComboBox:AddChoice("0 - Head Only", 0, true)
 			boneComboBox:AddChoice("1 - Prefer Head", 1)
-			boneComboBox:AddChoice("2 - Head Only", 2, true)
+			boneComboBox:AddChoice("2 - Closest", 2)
 			boneComboBox:ChooseOption(boneComboBox:GetOptionTextByData(bonePref), bonePref)
 			panel:ControlHelp("Select which part of the target to aim.")
 
@@ -63,12 +83,18 @@ if CLIENT then
 			panel:CheckBox("Triggerbot", "aimbotgun_triggerbot")
 			panel:ControlHelp("Automatically shoot targets on your sight.")
 
+			panel:CheckBox("Triggerbot - Only shoot when keybind pressed", "aimbotgun_triggerbot_keycheck")
+			panel:ControlHelp("Only shoot the target when aimbot key is pressed, only available for 'Keybind' mode.")
+
+			panel:CheckBox("Triggerbot - Only shoot when ray confirmed", "aimbotgun_triggerbot_raycheck")
+			panel:ControlHelp("Only shoot the target when it is on your ray of sight.")
+
 			panel:CheckBox("Lock target", "aimbotgun_aimbot_locktarget")
-			panel:ControlHelp("Prevent target switching while pressed the keybind. Only available on 'When pressed keybind' mode.")
+			panel:ControlHelp("Prevent target switching while pressed the keybind. Only available on 'Keybind' mode.")
 
 			panel:Help("")
 			panel:Help("")
-			panel:Help("These options are only available for 'When firing bullets' mode:")
+			panel:Help("These options are only available for 'Bullets' mode:")
 			panel:Help("")
 
 			panel:CheckBox("Enable Silent Aim", "aimbotgun_aimbot_silent")
@@ -94,10 +120,10 @@ if CLIENT then
 			panel:ControlHelp("Delay between triggerbot triggers your gun trigger. Setting this value too low might cause some issues especially while reloading.")
 
 			panel:CheckBox("No spread mode", "aimbotgun_global_nospread")
-			panel:ControlHelp("Disable bullet spreads.")
+			panel:ControlHelp("Disable bullet spreads, for 'Keybind' mode.")
 
 			panel:NumSlider("Bullet spread multiplier", "aimbotgun_global_spreadmultiplier", 0, 2.0, 3)
-			panel:ControlHelp("Only available when 'When firing bullets' mode enabled.")
+			panel:ControlHelp("Bullet spread multiplier, for 'Bullets' mode.")
 		end)
 
 		-- Targets
@@ -131,7 +157,7 @@ if CLIENT then
 		-- Debuggings
 		spawnmenu.AddToolMenuOption("Utilities", "AimbotGun", "AimbotGunSettingsOptimization", "Optimization", "", "", function(panel)
 			panel:CheckBox("Only search targets when the aimbot keybind pressed", "aimbotgun_optimization_searchifbindpressed")
-			panel:ControlHelp("Only available on 'When pressed keybind' mode")
+			panel:ControlHelp("Only available on 'Keybind' mode")
 		end)
 
 		-- Debuggings

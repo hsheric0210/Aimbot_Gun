@@ -9,22 +9,29 @@ local AimbotGun_ConVars = {
 	["aimbotgun_global_spreadmultiplier"] = "0.5",
 	-- general
 	["aimbotgun_aimbot_mode"] = "0",
+	["aimbotgun_aimbot_speedmode"] = "0",
+	["aimbotgun_aimbot_minspeed"] = "180",
+	["aimbotgun_aimbot_maxspeed"] = "180",
 	["aimbotgun_aimbot_minyawspeed"] = "180",
 	["aimbotgun_aimbot_maxyawspeed"] = "180",
 	["aimbotgun_aimbot_minpitchspeed"] = "180",
 	["aimbotgun_aimbot_maxpitchspeed"] = "180",
-	["aimbotgun_aimbot_yawsmooth"] = "1",
-	["aimbotgun_aimbot_pitchsmooth"] = "1",
+	["aimbotgun_aimbot_smoothamount"] = "1",
+	["aimbotgun_aimbot_yawsmoothamount"] = "1",
+	["aimbotgun_aimbot_pitchsmoothamount"] = "1",
 	["aimbotgun_aimbot_silent"] = "0",
 	["aimbotgun_aimbot_reflick"] = "0",
 	["aimbotgun_aimbot_reflick_delay"] = "0.01",
-	["aimbotgun_aimbot_fov"] = "2",
+	["aimbotgun_aimbot_fov_b"] = "2",
+	["aimbotgun_aimbot_fov_k"] = "2",
 	["aimbotgun_aimbot_wallcheck"] = "1",
 	["aimbotgun_aimbot_bone"] = "2",
 	["aimbotgun_aimbot_smooth"] = "0",
 	["aimbotgun_aimbot_predictsize"] = "0.1",
 	["aimbotgun_aimbot_locktarget"] = "1",
 	["aimbotgun_triggerbot"] = "0",
+	["aimbotgun_triggerbot_keycheck"] = "1",
+	["aimbotgun_triggerbot_raycheck"] = "1",
 	-- target
 	["aimbotgun_target_player"] = "1",
 	["aimbotgun_target_all"] = "0",
@@ -107,7 +114,7 @@ local FireAimbotBullets = function(self, bulletdata)
 	if bulletdata.Aimbotted then
 		return false
 	end
-	if self:IsPlayer() and GetConVar("aimbotgun_aimbot_mode"):GetInt() == 0 and GetConVar("aimbotgun_global"):GetBool() then
+	if self:IsPlayer() and GetConVar("aimbotgun_aimbot_mode"):GetInt() <= 1 and GetConVar("aimbotgun_global"):GetBool() then
 		if not self.AimTarget then
 			self.AimTarget = nil
 		end
@@ -115,7 +122,7 @@ local FireAimbotBullets = function(self, bulletdata)
 		if owner == nil then
 			owner = self
 		end
-		local silent = GetConVar("aimbotgun_aimbot_silent"):GetBool()
+		local silent = GetConVar("aimbotgun_aimbot_silent"):GetBool() or GetConVar("aimbotgun_aimbot_mode"):GetInt() == 1
 		local prevAngle = owner:LocalEyeAngles()
 
 		local target = nil
@@ -124,7 +131,7 @@ local FireAimbotBullets = function(self, bulletdata)
 		end
 
 		if not IsTargetValid(target) then
-			target = AimbotGun.GetClosestBone(owner)
+			target = AimbotGun.GetClosestBone(owner, nil, GetConVar("aimbotgun_aimbot_fov_b"):GetFloat())
 			owner.ServerAimbotTarget = target
 		end
 
@@ -244,19 +251,23 @@ local RenderTargetAndMarks = function()
 end
 
 local Tick = function()
-	if SERVER and GetConVar("aimbotgun_aimbot_mode"):GetInt() == 0 and GetConVar("aimbotgun_triggerbot"):GetBool() then
+	if SERVER and GetConVar("aimbotgun_aimbot_mode"):GetInt() <= 1 and GetConVar("aimbotgun_triggerbot"):GetBool() then
+		local keycheck = GetConVar("aimbotgun_triggerbot_keycheck"):GetBool()
+		local delegated = GetConVar("aimbotgun_aimbot_mode"):GetInt() == 1 and GetConVar("aimbotgun_triggerbot_raycheck"):GetBool()
 		for _, ent in pairs(ents.GetAll()) do
 			if ent and ent:IsValid() and ent:IsPlayer() and IsValid(ent:GetActiveWeapon()) then
 				if ent:GetActiveWeapon():Clip1() > 0 and ent:GetActiveWeapon():GetNextPrimaryFire() < CurTime() then
-					local target = AimbotGun.GetClosestBone(ent)
+					local target = AimbotGun.GetClosestBone(ent, nil, GetConVar("aimbotgun_aimbot_fov_b"):GetFloat())
 					if IsTargetValid(target) then
-						ent.Triggerbot = true
+						if not delegated and (not keycheck or ent.AimKeyPress) then
+							ent.Triggerbot = true
+						end
 						ent.ServerAimbotTarget = target
 					end
 				end
 			end
 		end
-	elseif CLIENT and GetConVar("aimbotgun_aimbot_mode"):GetInt() == 1 then
+	elseif CLIENT and GetConVar("aimbotgun_aimbot_mode"):GetInt() >= 1 then
 		local player = LocalPlayer()
 		if not IsValid(player) then return end
 		if GetConVar("aimbotgun_optimization_searchifbindpressed"):GetBool() and not (input.IsButtonDown(GetConVar("aimbotgun_global_bind_aimassist"):GetInt()) or input.IsButtonDown(GetConVar("aimbotgun_global_bind_flick"):GetInt())) then
@@ -270,41 +281,79 @@ local Tick = function()
 		else
 			priorityEntityID = nil
 		end
-		local target = AimbotGun.GetClosestBone(player, priorityEntityID)
+		local target = AimbotGun.GetClosestBone(player, priorityEntityID, GetConVar("aimbotgun_aimbot_fov_k"):GetFloat())
 		player.ClientAimbotTarget = target
 		player.TargetChanged = player.FirstTarget ~= nil and target.Entity ~= 0 and player.FirstTarget:EntIndex() ~= target.Entity:EntIndex()
 	end
 end
 
+local GetDelta = function(target, ppos, pangle)
+	local predict = GetConVar("aimbotgun_aimbot_predictsize"):GetFloat()
+	local bonepos = target.Bone.Pos + target.Entity:GetVelocity() * predict
+	local tangle = (bonepos - ppos):Angle()
+	local yawDelta = GetAngleDelta(tangle.y, pangle.y)
+	local pitchDelta = GetAngleDelta(tangle.p, pangle.p)
+
+	local smoothing = Smoothing[GetConVar("aimbotgun_aimbot_smooth"):GetInt()]
+	local smode = GetConVar("aimbotgun_aimbot_speedmode"):GetBool()
+	local yawlimit = math.Clamp(smoothing(yawDelta, GetConVar(smode and "aimbotgun_aimbot_minspeed" or "aimbotgun_aimbot_minyawspeed"):GetFloat(), GetConVar(smode and "aimbotgun_aimbot_maxspeed" or "aimbotgun_aimbot_maxyawspeed"):GetFloat(), GetConVar(smode and "aimbotgun_aimbot_smoothamount" or "aimbotgun_aimbot_yawsmoothamount"):GetFloat()), -180, 180)
+	local pitchlimit = math.Clamp(smoothing(pitchDelta, GetConVar(smode and "aimbotgun_aimbot_minspeed" or "aimbotgun_aimbot_minpitchspeed"):GetFloat(), GetConVar(smode and "aimbotgun_aimbot_maxspeed" or "aimbotgun_aimbot_maxpitchspeed"):GetFloat(), GetConVar(smode and "aimbotgun_aimbot_smoothamount" or "aimbotgun_aimbot_pitchsmoothamount"):GetFloat()), -180, 180)
+
+	yawDelta = math.Clamp(yawDelta, -yawlimit, yawlimit)
+	pitchDelta = math.Clamp(pitchDelta, -pitchlimit, pitchlimit)
+
+	return { Yaw = yawDelta, Pitch = pitchDelta }
+end
+
+local PreviousState = 0
+
+local b2i = function(bl)
+	return bl and 1 or 0
+end
+
+local SendState = function(bindpress, trigger)
+	if PreviousState == bindpress and not trigger then
+		return
+	end
+	local flags = bit.bor(bit.lshift(b2i(bindpress), 1), b2i(trigger))
+	net.Start("AimbotGunAutoTrigger")
+	net.WriteInt(flags, 4)
+	net.SendToServer()
+	PreviousState = bindpress
+end
+
 local ApplyAim = function()
 	local ply = LocalPlayer()
-	if not IsValid(ply) or not IsTargetValid(ply.ClientAimbotTarget) then return end
 
-	if input.IsButtonDown(GetConVar("aimbotgun_global_bind_aimassist"):GetInt()) then
+	if not IsValid(ply) then
+		SendState(false, false)
+		return
+	end
+
+	local raycheck = false
+	local bindchecker = GetConVar("aimbotgun_triggerbot_keycheck"):GetBool()
+	local bindcheck = input.IsButtonDown(GetConVar("aimbotgun_global_bind_aimassist"):GetInt())
+	if not bindchecker then
+		local trace = ply:GetEyeTrace()
+		raycheck = trace.HitNonWorld and AimbotGun.IsTargetValid(ply, trace.Entity)
+	end
+	if bindcheck and IsTargetValid(ply.ClientAimbotTarget) then
 		if not GetConVar("aimbotgun_aimbot_locktarget"):GetBool() or not ply.TargetChanged then
-			local predict = GetConVar("aimbotgun_aimbot_predictsize"):GetFloat()
-			local bonepos = ply.ClientAimbotTarget.Bone.Pos + ply.ClientAimbotTarget.Entity:GetVelocity() * predict
 			local pangle = ply:EyeAngles()
-			local tangle = (bonepos - ply:GetShootPos()):Angle()
-			local yawDelta = GetAngleDelta(tangle.y, pangle.y)
-			local pitchDelta = GetAngleDelta(tangle.p, pangle.p)
-
-			local smoothing = Smoothing[GetConVar("aimbotgun_aimbot_smooth"):GetInt()]
-			local yawlimit = math.Clamp(smoothing(yawDelta, GetConVar("aimbotgun_aimbot_minyawspeed"):GetFloat(), GetConVar("aimbotgun_aimbot_maxyawspeed"):GetFloat(), GetConVar("aimbotgun_aimbot_yawsmooth"):GetFloat()), -180, 180)
-			local pitchlimit = math.Clamp(smoothing(pitchDelta, GetConVar("aimbotgun_aimbot_minpitchspeed"):GetFloat(), GetConVar("aimbotgun_aimbot_maxpitchspeed"):GetFloat(), GetConVar("aimbotgun_aimbot_yawsmooth"):GetFloat()), -180, 180)
-
-			yawDelta = math.Clamp(yawDelta, -yawlimit, yawlimit)
-			pitchDelta = math.Clamp(pitchDelta, -pitchlimit, pitchlimit)
+			local deltas = GetDelta(ply.ClientAimbotTarget, ply:GetShootPos(), pangle)
+			local yawDelta = deltas.Yaw
+			local pitchDelta = deltas.Pitch
 			local ang = Angle(pangle.p + pitchDelta, pangle.y + yawDelta, pangle.r)
 			ang:Normalize()
 			ply:SetEyeAngles(ang)
-
 			if GetConVar("aimbotgun_triggerbot"):GetBool() then
-				local trace = ply:GetEyeTrace()
-				if trace.HitNonWorld and AimbotGun.IsTargetValid(ply, trace.Entity) then
-					net.Start("AimbotGunAutoTrigger")
-					net.WriteBool(true)
-					net.SendToServer()
+				if GetConVar("aimbotgun_triggerbot_raycheck"):GetBool() then
+					if bindchecker then
+						local trace = ply:GetEyeTrace()
+						raycheck = trace.HitNonWorld and AimbotGun.IsTargetValid(ply, trace.Entity)
+					end
+				else
+					raycheck = true
 				end
 			end
 		end
@@ -315,6 +364,7 @@ local ApplyAim = function()
 	else
 		ply.FirstTarget = nil
 	end
+	SendState(bindcheck, raycheck)
 end
 
 local FireBullets = function(ent, data, ...)
@@ -340,7 +390,9 @@ local DebugTargetDataReceive = function(len, ply)
 end
 
 local AutoTrigger = function(len, ply)
-	ply.Triggerbot = net.ReadBool()
+	local flags = net.ReadInt(4)
+	ply.Triggerbot = bit.band(flags, 1) ~= 0
+	ply.AimKeyPress = bit.band(flags, 2) ~= 0
 end
 
 if SERVER then
