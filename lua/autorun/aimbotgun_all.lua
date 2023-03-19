@@ -335,7 +335,7 @@ local ApplyAim = function()
 	local bindcheck = input.IsButtonDown(GetConVar("aimbotgun_global_bind_aimassist"):GetInt())
 	if not bindchecker then
 		local trace = ply:GetEyeTrace()
-		raycheck = trace.HitNonWorld and AimbotGun.IsTargetValid(ply, trace.Entity)
+		raycheck = IsTargetValid(ply.ClientAimbotTarget) and trace.HitNonWorld and AimbotGun.IsTargetValid(ply, trace.Entity)
 	end
 	if bindcheck and IsTargetValid(ply.ClientAimbotTarget) then
 		if not GetConVar("aimbotgun_aimbot_locktarget"):GetBool() or not ply.TargetChanged then
