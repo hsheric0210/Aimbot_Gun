@@ -103,7 +103,7 @@ local RandomSphere = function(radius)
 end
 
 local IsTargetValid = function(target)
-	return target ~= nil and target.Entity ~= 0 and IsValid(target.Entity)
+	return target ~= nil and target.Entity ~= 0 --and target.Entity:IsValid()
 end
 
 local GetAngleDelta = function(a, b)
@@ -291,10 +291,14 @@ local GetDelta = function(target, ppos, pangle)
 	local predict = GetConVar("aimbotgun_aimbot_predictsize"):GetFloat()
 	local bonepos = target.Bone.Pos + target.Entity:GetVelocity() * predict
 	local tangle = (bonepos - ppos):Angle()
+	local smoothingType = GetConVar("aimbotgun_aimbot_smooth"):GetInt()
 	local yawDelta = GetAngleDelta(tangle.y, pangle.y)
 	local pitchDelta = GetAngleDelta(tangle.p, pangle.p)
+	if smoothingType == 0 then
+		return { Yaw = yawDelta, Pitch = pitchDelta }
+	end
 
-	local smoothing = Smoothing[GetConVar("aimbotgun_aimbot_smooth"):GetInt()]
+	local smoothing = Smoothing[smoothingType - 1]
 	local smode = GetConVar("aimbotgun_aimbot_speedmode"):GetBool()
 	local yawlimit = math.Clamp(smoothing(yawDelta, GetConVar(smode and "aimbotgun_aimbot_minspeed" or "aimbotgun_aimbot_minyawspeed"):GetFloat(), GetConVar(smode and "aimbotgun_aimbot_maxspeed" or "aimbotgun_aimbot_maxyawspeed"):GetFloat(), GetConVar(smode and "aimbotgun_aimbot_smoothamount" or "aimbotgun_aimbot_yawsmoothamount"):GetFloat()), -180, 180)
 	local pitchlimit = math.Clamp(smoothing(pitchDelta, GetConVar(smode and "aimbotgun_aimbot_minspeed" or "aimbotgun_aimbot_minpitchspeed"):GetFloat(), GetConVar(smode and "aimbotgun_aimbot_maxspeed" or "aimbotgun_aimbot_maxpitchspeed"):GetFloat(), GetConVar(smode and "aimbotgun_aimbot_smoothamount" or "aimbotgun_aimbot_pitchsmoothamount"):GetFloat()), -180, 180)
@@ -339,12 +343,18 @@ local ApplyAim = function()
 	end
 	if bindcheck and IsTargetValid(ply.ClientAimbotTarget) then
 		if not GetConVar("aimbotgun_aimbot_locktarget"):GetBool() or not ply.TargetChanged then
-			local pangle = ply:EyeAngles()
-			local deltas = GetDelta(ply.ClientAimbotTarget, ply:GetShootPos(), pangle)
-			local yawDelta = deltas.Yaw
-			local pitchDelta = deltas.Pitch
-			local ang = Angle(pangle.p + pitchDelta, pangle.y + yawDelta, pangle.r)
-			ang:Normalize()
+			local smoothingType = GetConVar("aimbotgun_aimbot_smooth"):GetInt()
+			local ang
+			if smoothingType == 0 then
+				local pos = ply.ClientAimbotTarget.Bone.Pos
+				ang = (pos - ply:GetShootPos()):Angle()
+			else
+				local pangle = ply:EyeAngles()
+				local deltas = GetDelta(ply.ClientAimbotTarget, ply:GetShootPos(), pangle)
+				local yawDelta = deltas.Yaw
+				local pitchDelta = deltas.Pitch
+				ang = Angle(pangle.p + pitchDelta, pangle.y + yawDelta, pangle.r)
+			end
 			ply:SetEyeAngles(ang)
 			if GetConVar("aimbotgun_triggerbot"):GetBool() then
 				if GetConVar("aimbotgun_triggerbot_raycheck"):GetBool() then
@@ -365,6 +375,26 @@ local ApplyAim = function()
 		ply.FirstTarget = nil
 	end
 	SendState(bindcheck, raycheck)
+end
+
+local ApplyAimCreateMove = function(user)
+	local ply = LocalPlayer()
+	local bindcheck = input.IsButtonDown(GetConVar("aimbotgun_global_bind_aimassist"):GetInt())
+	if GetConVar("aimbotgun_aimbot_smooth"):GetInt() == 0 and input.IsButtonDown(GetConVar("aimbotgun_global_bind_aimassist"):GetInt()) and IsTargetValid(ply.ClientAimbotTarget) and (not GetConVar("aimbotgun_aimbot_locktarget"):GetBool() or not ply.TargetChanged) then
+		user:SetViewAngles((ply.ClientAimbotTarget.Bone.Pos - ply:GetShootPos()):Angle())
+	end
+end
+
+local ApplyAimCalcView = function(ply, origin, angles, fov, znear, zfar)
+	if GetConVar("aimbotgun_aimbot_smooth"):GetInt() == 0 and input.IsButtonDown(GetConVar("aimbotgun_global_bind_aimassist"):GetInt()) and IsTargetValid(ply.ClientAimbotTarget) and (not GetConVar("aimbotgun_aimbot_locktarget"):GetBool() or not ply.TargetChanged) then
+		return {
+			origin = origin,
+			angles = (ply.ClientAimbotTarget.Bone.Pos - ply:GetShootPos()):Angle(),
+			fov = fov,
+			znear = znear,
+			zfar = zfar
+		}
+	end
 end
 
 local FireBullets = function(ent, data, ...)
@@ -404,7 +434,11 @@ elseif CLIENT then
 end
 
 hook.Add("Tick", "AimbotGunTick", Tick)
-hook.Add("PostRender", "AimbotGunApplyAim", ApplyAim)
+if CLIENT then
+	hook.Add("Think", "AimbotGunApplyAim_Think", ApplyAim)
+    hook.Add("CreateMove", "AimbotGunApplyAim_CreateMove", ApplyAimCreateMove)
+    hook.Add("CalcView", "AimbotGunApplyAim_CalcView", ApplyAimCalcView)
+end
 hook.Add("PostDrawHUD", "AimbotGunRenderHUD", RenderTargetAndMarks)
 hook.Add("StartCommand", "AimbotGunApplyTriggerbot", ApplyTriggerbot)
 hook.Add("EntityFireBullets", "AimbotGunFireBullets", FireBullets)

@@ -1,6 +1,9 @@
 # Aimbot Gun (Improved)
 ## Based on [Aimbot Gun](https://steamcommunity.com/sharedfiles/filedetails/?id=129637512) workshop by uacnix
 
+>Always disable various `Ricochet` options on other addons, **Especially ArcCW**.
+>The `Ricochet` option in other addons **WILL** cause lua infinity loop, the stack overflow, and the game crashes.
+
 So, here it is- the Aimbot Gun. Kill HUNDREDS of people with a single click!
 Primary: Shoot heads
 AFAIK it also locks onto other players, so I hope that there wont be silly admins giving it to players :D

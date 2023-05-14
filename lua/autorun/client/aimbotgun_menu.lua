@@ -60,11 +60,12 @@ if CLIENT then
 
 			local smoothPref = GetConVar("aimbotgun_aimbot_smooth"):GetInt()
 			local smoothComboBox = panel:ComboBox("Smoothing algorithm", "aimbotgun_aimbot_smooth")
-			smoothComboBox:AddChoice("0 - Simple", 0, true)
-			smoothComboBox:AddChoice("1 - Line", 1)
-			smoothComboBox:AddChoice("2 - Quad", 2)
-			smoothComboBox:AddChoice("3 - Sine", 3)
-			smoothComboBox:AddChoice("4 - Quad Sine", 4)
+			smoothComboBox:AddChoice("0 - None", 0, true)
+			smoothComboBox:AddChoice("1 - Simple", 1)
+			smoothComboBox:AddChoice("2 - Line", 1)
+			smoothComboBox:AddChoice("3 - Quad", 2)
+			smoothComboBox:AddChoice("4 - Sine", 3)
+			smoothComboBox:AddChoice("5 - Quad Sine", 4)
 			smoothComboBox:ChooseOption(smoothComboBox:GetOptionTextByData(smoothPref), smoothPref)
 			panel:ControlHelp("Only available on 'Keybind' mode.")
 
